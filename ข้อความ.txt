@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="th" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CYBER-RED STORE - ตลาดซื้อขายไอดีเกมพรีเมียม อัตโนมัติ 24 ชม.</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Prompt -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Prompt', sans-serif; 
+            background: linear-gradient(135deg, rgba(10, 3, 5, 0.90) 0%, rgba(20, 5, 10, 0.85) 50%, rgba(10, 3, 5, 0.92) 100%), 
+                        url('https://images.unsplash.com/photo-1542751371-adc38448a05e?w=1920&auto=format&fit=crop&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #f3f4f6; 
+            min-height: 100vh;
+        }
+        .cyber-card { 
+            background: rgba(20, 10, 15, 0.88); 
+            border: 1px solid rgba(239, 68, 68, 0.4); 
+            backdrop-filter: blur(16px); 
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.7); 
+        }
+        .cyber-glow { box-shadow: 0 0 25px rgba(239, 68, 68, 0.5); }
+        .cyber-btn { 
+            background: linear-gradient(135deg, #dc2626, #991b1b); 
+            transition: all 0.3s ease; 
+            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4); 
+        }
+        .cyber-btn:hover { 
+            opacity: 0.95; 
+            transform: translateY(-1px); 
+            box-shadow: 0 0 25px rgba(239, 68, 68, 0.7); 
+        }
+        .glass-nav { 
+            background: rgba(12, 4, 7, 0.95); 
+            backdrop-filter: blur(16px); 
+            border-top: 1px solid rgba(239, 68, 68, 0.3); 
+        }
+        .tab-section { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="pb-28">
+
+    <!-- Top Announcement Bar -->
+    <div class="bg-gradient-to-r from-red-950 via-red-900 to-red-950 text-red-200 text-[11px] py-1.5 px-3 flex justify-between items-center border-b border-red-700/40 shadow-lg">
+        <div class="overflow-hidden whitespace-nowrap w-full text-center">
+            <p class="animate-pulse font-medium"><i class="fa-solid fa-shield-halved text-yellow-400 mr-1"></i> CYBER-RED STORE: ตลาดซื้อขายไอดีเกมปลอดภัย ได้รับไอดีทันที 24 ชม.</p>
+        </div>
+    </div>
+
+    <!-- Top Navbar -->
+    <header class="sticky top-0 z-50 bg-[#0a0305]/90 border-b border-red-900/40 backdrop-blur-md px-4 py-3 flex justify-between items-center">
+        <div class="flex items-center space-x-2">
+            <button onclick="switchTab('home')" class="bg-gradient-to-tr from-red-700 via-rose-600 to-black text-white font-black px-3.5 py-1.5 rounded-xl cyber-glow text-sm flex items-center shadow-lg border border-red-500/50 hover:scale-105 transition-all cursor-pointer">
+                <i class="fa-solid fa-skull-crossbones mr-2 text-red-300 animate-pulse"></i> 
+                <span class="tracking-wider">CYBER<span class="text-red-400">RED</span></span>
+            </button>
+        </div>
+        <div class="flex items-center space-x-2" id="auth-header-btn">
+            <button onclick="openModal('login-modal')" class="cyber-btn text-white text-xs font-semibold px-4 py-2 rounded-full shadow-lg">
+                เข้าสู่ระบบ
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-md mx-auto p-4 space-y-4">
+
+        <!-- Home View -->
+        <section id="view-home" class="tab-section space-y-4">
+            <div class="cyber-card p-6 rounded-3xl text-center relative overflow-hidden border-red-600/40">
+                <div class="absolute -right-10 -bottom-10 w-36 h-36 bg-red-600/20 rounded-full blur-3xl"></div>
+                <div class="absolute -left-10 -top-10 w-36 h-36 bg-rose-900/20 rounded-full blur-3xl"></div>
+                <h1 class="text-xl font-extrabold bg-gradient-to-r from-red-400 via-rose-300 to-red-500 bg-clip-text text-transparent relative z-10">
+                    ตลาดซื้อ-ขายไอดีเกมพรีเมียม
+                </h1>
+                <p class="text-xs text-gray-400 mt-1.5 relative z-10">หลากหลายหมวดหมู่เกม คุ้มค่า ปลอดภัย ระบบออโต้</p>
+            </div>
+
+            <!-- Search & Dynamic Category Filter -->
+            <div class="space-y-3">
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-gray-400 text-xs"></i>
+                    <input type="text" id="search-input" oninput="filterCategory(currentFilter)" placeholder="ค้นหาชื่อไอดี หรือหมวดหมู่..." class="w-full bg-slate-950/85 border border-red-950 rounded-2xl pl-10 pr-4 py-3 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-red-600 transition-all">
+                </div>
+                <div id="category-buttons" class="flex space-x-2 overflow-x-auto pb-1 scrollbar-none">
+                    <button onclick="filterCategory('all')" class="cat-btn px-4 py-1.5 rounded-full text-xs font-medium bg-red-700 text-white shrink-0 shadow-lg shadow-red-950/50 transition-all">ทั้งหมด</button>
+                </div>
+            </div>
+
+            <!-- Product Grid -->
+            <div>
+                <h2 class="text-xs font-bold text-gray-300 mb-3 flex items-center px-1"><i class="fa-solid fa-fire text-red-500 mr-2"></i> สินค้าคุ้มค่า พร้อมจำหน่าย</h2>
+                <div id="product-list" class="grid grid-cols-2 gap-3">
+                    <div class="text-center text-xs text-gray-500 col-span-2 py-10">กำลังโหลดข้อมูลสินค้า...</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Topup View -->
+        <section id="view-topup" class="tab-section space-y-4 hidden">
+            <div class="cyber-card p-6 rounded-3xl space-y-4 text-center border-red-600/40">
+                <div class="w-14 h-14 bg-red-600/20 text-red-500 rounded-3xl mx-auto flex items-center justify-center text-xl mb-1 border border-red-500/30">
+                    <i class="fa-solid fa-qrcode"></i>
+                </div>
+                <h2 class="text-sm font-bold text-red-300">แจ้งชำระเงิน / แนบสลิปโอนเงิน</h2>
+
+                <div class="bg-white p-3 rounded-2xl flex flex-col items-center shadow-xl space-y-2">
+                    <img id="display-qr-img" src="https://i.ibb.co/6R395jZ/promptpay.jpg" alt="PromptPay QR" class="w-40 h-40 rounded-xl object-contain border border-gray-200">
+                    <div class="text-center text-slate-800 text-[11px]">
+                        <p id="display-qr-name" class="font-bold">สแกน QR Code เพื่อชำระเงิน</p>
+                        <p id="display-qr-detail" class="text-gray-500 text-[10px]">ระบบพร้อมเพย์อัตโนมัติ</p>
+                    </div>
+                </div>
+
+                <div class="space-y-3 text-left pt-2 border-t border-red-950">
+                    <div>
+                        <label class="block text-[11px] text-gray-300 mb-1">จำนวนเงินที่โอน (บาท) <span class="text-red-400">*</span></label>
+                        <input type="number" id="topup-amount" placeholder="ระบุยอดเงิน เช่น 100" class="w-full bg-slate-950/90 border border-red-950 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-red-600">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] text-gray-300 mb-1">ชื่อบัญชีผู้โอน / ธนาคาร <span class="text-red-400">*</span></label>
+                        <input type="text" id="topup-sender" placeholder="เช่น กสิกร - สมชาย ใจดี" class="w-full bg-slate-950/90 border border-red-950 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-red-600">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] text-gray-300 mb-1">แนบรูปสลิปการโอนเงิน <span class="text-red-400">*</span></label>
+                        <input type="file" id="topup-slip-file" accept="image/*" class="w-full text-xs text-gray-400 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-red-800 file:text-white hover:file:bg-red-700 cursor-pointer">
+                    </div>
+                    <button onclick="submitSlipPayment()" class="w-full cyber-btn text-white py-3 rounded-xl text-xs font-bold shadow-lg mt-2">
+                        <i class="fa-solid fa-paper-plane mr-1.5"></i> ส่งสลิปแจ้งแอดมินอนุมัติ
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- History View -->
+        <section id="view-history" class="tab-section space-y-4 hidden">
+            <div class="space-y-3">
+                <h2 class="text-xs font-bold text-gray-300 px-1"><i class="fa-solid fa-box-archive mr-2 text-red-500"></i> ประวัติการสั่งซื้อสินค้า (รับไอดี)</h2>
+                <div id="history-list" class="space-y-2.5">
+                    <p class="text-xs text-gray-500 text-center py-6">ยังไม่มีประวัติการซื้อสินค้า</p>
+                </div>
+            </div>
+
+            <div class="space-y-3 pt-3 border-t border-red-950">
+                <h2 class="text-xs font-bold text-gray-300 px-1"><i class="fa-solid fa-wallet mr-2 text-red-500"></i> ประวัติการเติมเงินของคุณ</h2>
+                <div id="user-topup-history-list" class="space-y-2.5">
+                    <p class="text-xs text-gray-500 text-center py-6">ยังไม่มีประวัติการเติมเงิน</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Admin Dashboard View -->
+        <section id="view-admin" class="tab-section space-y-4 hidden">
+            <div class="cyber-card p-6 rounded-3xl space-y-4 border-red-600/50">
+                <div class="flex justify-between items-center border-b border-red-950 pb-3">
+                    <h2 class="text-xs font-bold text-red-400"><i class="fa-solid fa-shield-halved mr-2"></i> ระบบจัดการหลังบ้าน (Admin Pro)</h2>
+                    <span id="admin-stats" class="text-[10px] bg-red-950/80 text-red-300 px-2.5 py-1 rounded-full font-medium border border-red-800/50">ยอดขายรวม: 0 ฿</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 bg-slate-950/90 p-1.5 rounded-2xl border border-red-950">
+                    <button onclick="switchAdminSubTab('add')" id="admin-subtab-add-btn" class="py-2 rounded-xl text-xs font-bold bg-red-700 text-white shadow transition-all">
+                        <i class="fa-solid fa-plus-circle mr-1"></i> วางสินค้า
+                    </button>
+                    <button onclick="switchAdminSubTab('manage')" id="admin-subtab-manage-btn" class="py-2 rounded-xl text-xs font-bold text-gray-400 hover:text-white transition-all">
+                        <i class="fa-solid fa-boxes-stacked mr-1"></i> จัดการรายการสินค้า
+                    </button>
+                </div>
+
+                <!-- 1. ส่วนวางสินค้า (เพิ่มสินค้าใหม่) -->
+                <div id="admin-subtab-add" class="space-y-3 pt-1">
+                    <p class="text-xs font-semibold text-gray-300"><i class="fa-solid fa-plus-circle text-red-500 mr-1"></i> เพิ่มสินค้าไอดีเกมใหม่</p>
+                    <div>
+                        <label class="block text-[11px] text-gray-400 mb-1">ชื่อหมวดหมู่ / เกม</label>
+                        <input type="text" id="admin-game" placeholder="เช่น Roblox, Valorant, Netflix" class="w-full bg-slate-950 border border-red-950 rounded-xl p-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-red-600">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] text-gray-400 mb-1">ชื่อสินค้า / รายละเอียด</label>
+                        <input type="text" id="admin-title" placeholder="เช่น ไก่ตัน ผลตื่นครบสุดคุ้ม" class="w-full bg-slate-950 border border-red-950 rounded-xl p-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-red-600">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] text-gray-400 mb-1">อัปโหลดรูปภาพสินค้า (เลือกไฟล์จากมือถือ)</label>
+                        <input type="file" id="admin-image-file" accept="image/*" class="w-full text-xs text-gray-400 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-red-800 file:text-white hover:file:bg-red-700 cursor-pointer">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] text-gray-400 mb-1">ราคา (บาท)</label>
+                        <input type="number" id="admin-price" placeholder="49" class="w-full bg-slate-950 border border-red-950 rounded-xl p-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-red-600">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] text-gray-400 mb-1">รายการไอดีในสต็อก (บรรทัดละ 1 ไอดี user:pass)</label>
+                        <textarea id="admin-accounts" placeholder="user1:pass1&#10;user2:pass2" class="w-full bg-slate-950 border border-red-950 rounded-xl p-2.5 text-xs text-white placeholder-gray-500 h-20 focus:outline-none focus:border-red-600"></textarea>
+                    </div>
+                    <button onclick="addProduct()" class="w-full cyber-btn text-white py-2.5 rounded-xl text-xs font-bold shadow-md">ยืนยันวางสินค้า</button>
+                </div>
+
+                <!-- 2. ส่วนจัดการรายการสินค้า (แก้ไข / ลบ) -->
+                <div id="admin-subtab-manage" class="space-y-3 pt-1 hidden">
+                    <div class="flex justify-between items-center">
+                        <p class="text-xs font-semibold text-gray-300"><i class="fa-solid fa-boxes-stacked text-red-500 mr-1"></i> รายการสินค้าทั้งหมดในระบบ</p>
+                        <span id="admin-total-products" class="text-[10px] bg-red-950/80 text-red-300 px-2 py-0.5 rounded-full font-bold">0 รายการ</span>
+                    </div>
+                    <div id="admin-products-list" class="space-y-2.5 max-h-96 overflow-y-auto pr-1">
+                        <p class="text-[11px] text-gray-500 text-center py-6">กำลังโหลดรายการสินค้า...</p>
+                    </div>
+                </div>
+
+                <!-- รายการสลิปรอดำเนินการ -->
+                <div class="space-y-2.5 bg-slate-950/90 p-3 rounded-2xl border border-red-800/60 shadow-inner mt-4">
+                    <div class="flex justify-between items-center border-b border-red-950 pb-2">
+                        <p class="text-xs font-bold text-yellow-400 flex items-center"><i class="fa-solid fa-bell mr-1.5 animate-bounce"></i> รายการสลิปรอการอนุมัติ</p>
+                        <span id="pending-slips-count" class="text-[10px] bg-yellow-500/20 text-yellow-300 border border-yellow-500/40 px-2 py-0.5 rounded-full font-bold">0 รายการ</span>
+                    </div>
+                    <div id="admin-slips-list" class="space-y-3 max-h-60 overflow-y-auto pr-1 pt-1">
+                        <p class="text-[11px] text-gray-500 text-center py-4">ไม่มีสลิปรอการตรวจสอบ</p>
+                    </div>
+                </div>
+
+                <!-- ระบบตั้งค่า QR Code รับเงิน -->
+                <div class="space-y-2.5 bg-slate-950/80 p-3 rounded-2xl border border-red-950">
+                    <p class="text-xs font-semibold text-red-300"><i class="fa-solid fa-qrcode mr-1"></i> ตั้งค่า QR Code รับเงิน (อัปโหลดรูปภาพ)</p>
+                    <div>
+                        <label class="block text-[10px] text-gray-400 mb-1">อัปโหลดรูปภาพ QR Code (เลือกไฟล์จากเครื่อง/มือถือ)</label>
+                        <input type="file" id="admin-qr-file" accept="image/*" class="w-full text-xs text-gray-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-red-800 file:text-white hover:file:bg-red-700 cursor-pointer">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] text-gray-400 mb-1">ชื่อบัญชี / พร้อมเพย์ / ธนาคาร</label>
+                        <input type="text" id="admin-qr-name" placeholder="เช่น นายสมชาย ใจดี (กสิกรไทย 123-4-56789-0)" class="w-full bg-slate-950 border border-red-950 rounded-xl p-2 text-xs text-white focus:outline-none focus:border-red-600">
+                    </div>
+                    <button onclick="saveQRSettingsDirect()" class="w-full bg-red-900/60 hover:bg-red-800 text-white py-2 rounded-xl text-xs font-semibold transition-all">บันทึกรูป QR และชื่อรับเงิน</button>
+                </div>
+
+                <!-- ระบบค้นหาข้อมูลสมาชิก -->
+                <div class="space-y-2.5 bg-slate-950/80 p-3 rounded-2xl border border-red-950">
+                    <p class="text-xs font-semibold text-red-300"><i class="fa-solid fa-users mr-1"></i> ค้นหาข้อมูลสมาชิกและเครดิต</p>
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-gray-400 text-xs"></i>
+                        <input type="text" id="admin-search-member" oninput="filterAdminMembers()" placeholder="ค้นหาด้วยอีเมลสมาชิก..." class="w-full bg-slate-950 border border-red-950 rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:outline-none focus:border-red-600">
+                    </div>
+                    <div id="admin-members-list" class="space-y-2 max-h-40 overflow-y-auto pr-1 pt-1">
+                        <p class="text-[11px] text-gray-500 text-center py-2">กำลังโหลดรายชื่อสมาชิก...</p>
+                    </div>
+                </div>
+
+                <!-- ระบบปรับเครดิตสมาชิก -->
+                <div class="space-y-2.5 bg-slate-950/80 p-3 rounded-2xl border border-red-950">
+                    <p class="text-xs font-semibold text-red-300"><i class="fa-solid fa-coins mr-1"></i> เติมเครดิตให้ลูกค้าโดยตรง</p>
+                    <div>
+                        <label class="block text-[10px] text-gray-400 mb-1">อีเมลสมาชิก</label>
+                        <input type="email" id="admin-target-email" placeholder="user@gmail.com" class="w-full bg-slate-950 border border-red-950 rounded-xl p-2 text-xs text-white focus:outline-none focus:border-red-600">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] text-gray-400 mb-1">จำนวนเครดิต (+)</label>
+                        <input type="number" id="admin-add-credit" placeholder="100" class="w-full bg-slate-950 border border-red-950 rounded-xl p-2 text-xs text-white focus:outline-none focus:border-red-600">
+                    </div>
+                    <button onclick="adjustUserCredit()" class="w-full bg-red-900/60 hover:bg-red-800 text-white py-1.5 rounded-xl text-xs font-semibold transition-all">ยืนยันเติมเครดิต</button>
+                </div>
+
+                <!-- ประวัติการซื้อทั้งหมด -->
+                <div class="border-t border-red-950 pt-3 space-y-2">
+                    <p class="text-xs font-semibold text-gray-300"><i class="fa-solid fa-list-check text-red-500 mr-1"></i> ประวัติการซื้อทั้งหมด</p>
+                    <div id="admin-orders-list" class="space-y-2 max-h-40 overflow-y-auto pr-1">
+                        <p class="text-[11px] text-gray-500 text-center py-2">ยังไม่มีรายการซื้อในระบบ</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal: แก้ไขรายการสินค้า -->
+    <div id="edit-product-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="cyber-card p-6 rounded-3xl w-full max-w-sm space-y-4 relative shadow-2xl border-red-600/50">
+            <button onclick="closeModal('edit-product-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <div class="text-center space-y-1">
+                <h3 class="text-base font-bold text-white"><i class="fa-solid fa-pen-to-square text-red-400 mr-1.5"></i> แก้ไขรายการสินค้า</h3>
+                <p class="text-[11px] text-gray-400">ปรับปรุงข้อมูลหรือสต็อกไอดีเกม</p>
+            </div>
+            <input type="hidden" id="edit-product-id">
+            <div class="space-y-3 pt-2">
+                <div>
+                    <label class="block text-[10px] text-gray-400 mb-1">หมวดหมู่ / เกม</label>
+                    <input type="text" id="edit-game" class="w-full bg-slate-950 border border-red-950 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-red-600">
+                </div>
+                <div>
+                    <label class="block text-[10px] text-gray-400 mb-1">ชื่อสินค้า / รายละเอียด</label>
+                    <input type="text" id="edit-title" class="w-full bg-slate-950 border border-red-950 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-red-600">
+                </div>
+                <div>
+                    <label class="block text-[10px] text-gray-400 mb-1">ราคา (บาท)</label>
+                    <input type="number" id="edit-price" class="w-full bg-slate-950 border border-red-950 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-red-600">
+                </div>
+                <div>
+                    <label class="block text-[10px] text-gray-400 mb-1">เพิ่ม/แก้ไขสต็อกไอดี (บรรทัดละ 1 ไอดี)</label>
+                    <textarea id="edit-accounts" placeholder="user1:pass1" class="w-full bg-slate-950 border border-red-950 rounded-xl p-2.5 text-xs text-white h-20 focus:outline-none focus:border-red-600"></textarea>
+                </div>
+                <button onclick="updateProductData()" class="w-full cyber-btn text-white py-2.5 rounded-xl text-xs font-bold shadow-md">บันทึกการแก้ไข</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal ดูรูปสลิป -->
+    <div id="slip-modal" class="fixed inset-0 bg-black/95 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="cyber-card p-4 rounded-3xl w-full max-w-sm space-y-3 relative text-center">
+            <button onclick="closeModal('slip-modal')" class="absolute top-3 right-3 text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <p class="text-xs font-bold text-red-400">รูปภาพสลิปการโอนเงิน</p>
+            <img id="modal-slip-img" src="" alt="Slip Image" class="w-full max-h-96 object-contain rounded-xl border border-red-950">
+        </div>
+    </div>
+
+    <!-- Modal: เข้าสู่ระบบ -->
+    <div id="login-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="cyber-card p-6 rounded-3xl w-full max-w-sm space-y-4 relative shadow-2xl border-red-600/50">
+            <button onclick="closeModal('login-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <div class="text-center space-y-1">
+                <div class="w-12 h-12 bg-red-600/20 text-red-500 rounded-2xl mx-auto flex items-center justify-center text-lg mb-2 border border-red-500/30">
+                    <i class="fa-solid fa-right-to-bracket"></i>
+                </div>
+                <h3 class="text-base font-bold text-white">เข้าสู่ระบบสมาชิก</h3>
+                <p class="text-[11px] text-gray-400">ยินดีต้อนรับกลับสู่ CYBER-RED STORE</p>
+            </div>
+            <div class="space-y-3 pt-2">
+                <div>
+                    <label class="block text-[10px] text-gray-400 mb-1">อีเมลของคุณ</label>
+                    <input type="email" id="login-email" placeholder="user@gmail.com" class="w-full bg-slate-950 border border-red-950 rounded-xl p-3 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-red-600">
+                </div>
+                <div>
+                    <label class="block text-[10px] text-gray-400 mb-1">รหัสผ่าน</label>
+                    <input type="password" id="login-password" placeholder="••••••••" class="w-full bg-slate-950 border border-red-950 rounded-xl p-3 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-red-600">
+                </div>
+                <button onclick="handleLogin()" class="w-full cyber-btn text-white py-3 rounded-xl text-xs font-bold shadow-md mt-1">เข้าสู่ระบบ</button>
+                
+                <div class="text-center pt-2 border-t border-red-950">
+                    <p class="text-[11px] text-gray-400">ยังไม่มีบัญชีสมาชิก? 
+                        <button onclick="closeModal('login-modal'); openModal('register-modal');" class="text-red-400 font-bold hover:underline ml-1">สมัครสมาชิกที่นี่</button>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: สมัครสมาชิก (ดีไซน์พรีเมียมเขียวมรกต) -->
+    <div id="register-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-gradient-to-b from-slate-900 via-slate-950 to-black p-7 rounded-[28px] w-full max-w-sm space-y-5 relative shadow-[0_0_40px_rgba(16,185,129,0.25)] border border-emerald-500/40">
+            <button onclick="closeModal('register-modal')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-900 border border-slate-800 text-gray-400 hover:text-white flex items-center justify-center transition-all">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="text-center space-y-2">
+                <div class="w-14 h-14 bg-gradient-to-tr from-emerald-600 to-teal-800 text-white rounded-2xl mx-auto flex items-center justify-center text-xl shadow-lg shadow-emerald-900/50 border border-emerald-400/30 animate-pulse">
+                    <i class="fa-solid fa-user-plus"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white tracking-wide">สมัครสมาชิกใหม่</h3>
+                <p class="text-xs text-gray-400">สร้างบัญชีเพื่อรับสิทธิพิเศษและซื้อสินค้าออโต้ 24 ชม.</p>
+            </div>
+            <div class="space-y-3 pt-1">
+                <div>
+                    <label class="block text-[11px] text-gray-300 mb-1 font-medium">อีเมลของคุณ <span class="text-emerald-400">*</span></label>
+                    <div class="relative">
+                        <i class="fa-solid fa-envelope absolute left-3.5 top-3.5 text-gray-500 text-xs"></i>
+                        <input type="email" id="reg-email" placeholder="user@gmail.com" class="w-full bg-slate-900/90 border border-slate-800 rounded-xl pl-10 pr-3 py-3 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-emerald-500 transition-all">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[11px] text-gray-300 mb-1 font-medium">รหัสผ่าน (อย่างน้อย 6 ตัวอักษร) <span class="text-emerald-400">*</span></label>
+                    <div class="relative">
+                        <i class="fa-solid fa-lock absolute left-3.5 top-3.5 text-gray-500 text-xs"></i>
+                        <input type="password" id="reg-password" placeholder="••••••••" class="w-full bg-slate-900/90 border border-slate-800 rounded-xl pl-10 pr-3 py-3 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-emerald-500 transition-all">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[11px] text-gray-300 mb-1 font-medium">ยืนยันรหัสผ่านอีกครั้ง <span class="text-emerald-400">*</span></label>
+                    <div class="relative">
+                        <i class="fa-solid fa-lock-keyhole absolute left-3.5 top-3.5 text-gray-500 text-xs"></i>
+                        <input type="password" id="reg-confirm-password" placeholder="••••••••" class="w-full bg-slate-900/90 border border-slate-800 rounded-xl pl-10 pr-3 py-3 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-emerald-500 transition-all">
+                    </div>
+                </div>
+                <button onclick="handleRegister()" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white py-3 rounded-xl text-xs font-bold shadow-lg shadow-emerald-900/40 transition-all transform hover:-translate-y-0.5 mt-2">
+                    <i class="fa-solid fa-check-circle mr-1.5"></i> ยืนยันสมัครสมาชิก
+                </button>
+                
+                <div class="text-center pt-3 border-t border-slate-800/80">
+                    <p class="text-xs text-gray-400">มีบัญชีอยู่แล้ว? 
+                        <button onclick="closeModal('register-modal'); openModal('login-modal');" class="text-emerald-400 font-bold hover:underline ml-1">เข้าสู่ระบบ</button>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="fixed bottom-0 left-0 right-0 glass-nav px-4 py-2.5 flex justify-around items-center z-40 max-w-md mx-auto rounded-t-3xl shadow-2xl relative">
+        <button onclick="switchTab('home')" class="nav-item flex flex-col items-center text-red-500 text-[11px] transition-all" data-target="home">
+            <i class="fa-solid fa-house text-base"></i>
+            <span class="mt-1 font-medium">หน้าแรก</span>
+        </button>
+        <button onclick="switchTab('topup')" class="nav-item flex flex-col items-center text-gray-400 text-[11px] transition-all" data-target="topup">
+            <i class="fa-solid fa-wallet text-base"></i>
+            <span class="mt-1 font-medium">เติมเงิน</span>
+        </button>
+        
+        <div class="relative -top-5">
+            <button onclick="switchTab('home')" class="w-14 h-14 bg-gradient-to-tr from-red-600 to-rose-900 rounded-full flex items-center justify-center text-white text-xl shadow-xl cyber-glow border-4 border-[#0a0307] transition-transform hover:scale-105 cursor-pointer">
+                <i class="fa-solid fa-store"></i>
+            </button>
+        </div>
+
+        <button onclick="switchTab('history')" class="nav-item flex flex-col items-center text-gray-400 text-[11px] transition-all" data-target="history">
+            <i class="fa-solid fa-box-archive text-base"></i>
+            <span class="mt-1 font-medium">คำสั่งซื้อ</span>
+        </button>
+        <button onclick="checkAuthAndOpenSidebar()" class="nav-item flex flex-col items-center text-gray-400 text-[11px] transition-all" id="nav-profile-btn">
+            <i class="fa-solid fa-user text-base"></i>
+            <span class="mt-1 font-medium">เข้าสู่ระบบ</span>
+        </button>
+    </nav>
+
+    <!-- Slide-out Menu -->
+    <div id="sidebar-menu" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/85 backdrop-blur-sm" onclick="closeSidebar()"></div>
+        <div class="absolute right-0 top-0 bottom-0 w-80 bg-[#0a0305] border-l border-red-950 p-5 flex flex-col justify-between shadow-2xl overflow-y-auto">
+            <div class="space-y-5">
+                <div class="flex justify-between items-center border-b border-red-950 pb-4">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-gradient-to-tr from-red-700 to-rose-900 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                        <div>
+                            <h4 id="sidebar-email" class="text-xs font-bold text-white truncate w-40">User Member</h4>
+                            <p id="sidebar-role-badge" class="text-[10px] text-red-400">สมาชิกทั่วไป</p>
+                        </div>
+                    </div>
+                    <button onclick="closeSidebar()" class="text-gray-400 hover:text-white text-base"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+
+                <div class="cyber-card p-4 rounded-2xl space-y-2">
+                    <p class="text-[11px] text-gray-400 font-medium">ยอดเครดิตของคุณ</p>
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center space-x-2">
+                            <i class="fa-solid fa-wallet text-red-500"></i>
+                            <span id="sidebar-credit" class="text-base font-extrabold text-red-400">0.00</span>
+                            <span class="text-xs text-gray-300">฿</span>
+                        </div>
+                        <button onclick="switchTab('topup'); closeSidebar();" class="bg-red-700 hover:bg-red-800 text-white w-7 h-7 rounded-xl flex items-center justify-center text-xs shadow-md"><i class="fa-solid fa-plus"></i></button>
+                    </div>
+                </div>
+
+                <div class="space-y-1.5 pt-2">
+                    <button onclick="switchTab('topup'); closeSidebar();" class="w-full flex items-center justify-between p-3 rounded-xl bg-slate-950/70 hover:bg-slate-900 text-xs text-gray-200 transition-all">
+                        <span class="flex items-center"><i class="fa-solid fa-wallet text-red-500 mr-3 w-4"></i> เติมเงิน / กระเป๋าเงิน</span>
+                        <i class="fa-solid fa-chevron-right text-[10px] text-gray-500"></i>
+                    </button>
+                    <button onclick="switchTab('history'); closeSidebar();" class="w-full flex items-center justify-between p-3 rounded-xl bg-slate-950/70 hover:bg-slate-900 text-xs text-gray-200 transition-all">
+                        <span class="flex items-center"><i class="fa-solid fa-box-archive text-red-500 mr-3 w-4"></i> คำสั่งซื้อ & ประวัติเติมเงิน</span>
+                        <i class="fa-solid fa-chevron-right text-[10px] text-gray-500"></i>
+                    </button>
+                    <div class="p-3 rounded-xl bg-slate-950/70 flex justify-between items-center text-xs text-gray-200">
+                        <span class="flex items-center"><i class="fa-solid fa-bell text-red-500 mr-3 w-4"></i> เสียงแจ้งเตือน</span>
+                        <button onclick="toggleSound()" id="sound-toggle-btn" class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-2.5 py-0.5 rounded-full font-medium text-[10px]">เปิด</button>
+                    </div>
+                    <div id="sidebar-admin-btn" class="hidden pt-1">
+                        <button onclick="switchTab('admin'); closeSidebar();" class="w-full flex items-center justify-between p-3 rounded-xl bg-red-950/60 hover:bg-red-900/60 border border-red-600/40 text-xs text-red-300 transition-all font-semibold">
+                            <span class="flex items-center"><i class="fa-solid fa-gear mr-3 w-4"></i> จัดการหลังบ้าน (Admin Pro)</span>
+                            <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="logout(); closeSidebar();" class="w-full bg-red-950/30 hover:bg-red-950/50 text-red-400 border border-red-800/30 py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center justify-center">
+                <i class="fa-solid fa-right-from-bracket mr-2"></i> ออกจากระบบ
+            </button>
+        </div>
+    </div>
+
+    <!-- Notification Toast Element -->
+    <div id="toast-notification" class="fixed top-12 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 transform -translate-y-20 opacity-0 pointer-events-none">
+        <div id="toast-box" class="bg-emerald-950/95 border border-emerald-600/50 text-white px-4 py-2.5 rounded-2xl shadow-2xl flex items-center space-x-3 backdrop-blur-md">
+            <div id="toast-icon" class="text-emerald-400 text-base"><i class="fa-solid fa-circle-check"></i></div>
+            <div>
+                <p id="toast-title" class="text-xs font-bold text-emerald-200">แจ้งเตือนระบบ</p>
+                <p id="toast-desc" class="text-[10px] text-gray-200">รายละเอียดข้อความแจ้งเตือน</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase & App Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, getDoc, setDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBtFjW_LG0kDtQw7btUV2mZAQfE_250Nt0",
+            authDomain: "game-id-shop-37780.firebaseapp.com",
+            projectId: "game-id-shop-37780",
+            storageBucket: "game-id-shop-37780.firebasestorage.app",
+            messagingSenderId: "761665418354",
+            appId: "1:761665418354:web:9cc72217de825059147eeb"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUser = null;
+        let currentFilter = 'all';
+        let soundEnabled = true;
+
+        window.showToast = function(title, desc, type = 'success') {
+            const toast = document.getElementById('toast-notification');
+            const toastBox = document.getElementById('toast-box');
+            const titleEl = document.getElementById('toast-title');
+            const descEl = document.getElementById('toast-desc');
+            const iconEl = document.getElementById('toast-icon');
+
+            titleEl.innerText = title;
+            descEl.innerText = desc;
+
+            if (type === 'success') {
+                toastBox.className = "bg-emerald-950/95 border border-emerald-600/50 text-white px-4 py-2.5 rounded-2xl shadow-2xl flex items-center space-x-3 backdrop-blur-md";
+                iconEl.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-400"></i>';
+                titleEl.className = "text-xs font-bold text-emerald-200";
+            } else {
+                toastBox.className = "bg-rose-950/95 border border-rose-600/50 text-white px-4 py-2.5 rounded-2xl shadow-2xl flex items-center space-x-3 backdrop-blur-md";
+                iconEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-amber-400"></i>';
+                titleEl.className = "text-xs font-bold text-rose-200";
+            }
+
+            toast.classList.remove('-translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('-translate-y-20', 'opacity-0');
+            }, 3500);
+        }
+
+        window.toggleSound = function() {
+            soundEnabled = !soundEnabled;
+            const btn = document.getElementById('sound-toggle-btn');
+            if (soundEnabled) {
+                btn.className = "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-2.5 py-0.5 rounded-full font-medium text-[10px]";
+                btn.innerText = "เปิด";
+                showToast("ตั้งค่าเสียง", "เปิดเสียงแจ้งเตือนสำเร็จ", "success");
+            } else {
+                btn.className = "bg-rose-500/20 text-rose-400 border border-rose-500/40 px-2.5 py-0.5 rounded-full font-medium text-[10px]";
+                btn.innerText = "ปิด";
+                showToast("ตั้งค่าเสียง", "ปิดเสียงแจ้งเตือนแล้ว", "warning");
+            }
+        }
+
+        window.openSidebar = () => document.getElementById('sidebar-menu').classList.remove('hidden');
+        window.closeSidebar = () => document.getElementById('sidebar-menu').classList.add('hidden');
+
+        window.checkAuthAndOpenSidebar = function() {
+            if (!currentUser) {
+                openModal('login-modal');
+            } else {
+                openSidebar();
+            }
+        }
+
+        window.switchTab = function(tabName) {
+            ['home', 'topup', 'history', 'admin'].forEach(t => {
+                const el = document.getElementById(`view-${t}`);
+                if(el) {
+                    el.classList.add('hidden');
+                    el.classList.remove('tab-section');
+                }
+            });
+            const targetView = document.getElementById(`view-${tabName}`);
+            if(targetView) {
+                targetView.classList.remove('hidden');
+                targetView.classList.add('tab-section');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('text-red-500');
+                item.classList.add('text-gray-400');
+                if(item.getAttribute('data-target') === tabName) {
+                    item.classList.add('text-red-500');
+                    item.classList.remove('text-gray-400');
+                }
+            });
+        }
+
+        window.switchAdminSubTab = function(subTab) {
+            const addSec = document.getElementById('admin-subtab-add');
+            const manageSec = document.getElementById('admin-subtab-manage');
+            const addBtn = document.getElementById('admin-subtab-add-btn');
+            const manageBtn = document.getElementById('admin-subtab-manage-btn');
+
+            if (subTab === 'add') {
+                addSec.classList.remove('hidden');
+                manageSec.classList.add('hidden');
+                addBtn.className = "py-2 rounded-xl text-xs font-bold bg-red-700 text-white shadow transition-all";
+                manageBtn.className = "py-2 rounded-xl text-xs font-bold text-gray-400 hover:text-white transition-all";
+            } else {
+                addSec.classList.add('hidden');
+                manageSec.classList.remove('hidden');
+                manageBtn.className = "py-2 rounded-xl text-xs font-bold bg-red-700 text-white shadow transition-all";
+                addBtn.className = "py-2 rounded-xl text-xs font-bold text-gray-400 hover:text-white transition-all";
+                loadAdminData();
+            }
+        }
+
+        window.openModal = (id) => document.getElementById(id).classList.remove('hidden');
+        window.closeModal = (id) => document.getElementById(id).classList.add('hidden');
+        window.viewSlipImage = (url) => {
+            document.getElementById('modal-slip-img').src = url;
+            openModal('slip-modal');
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            currentUser = user;
+            const headerBtn = document.getElementById('auth-header-btn');
+            const adminBtn = document.getElementById('sidebar-admin-btn');
+            const navProfileBtn = document.getElementById('nav-profile-btn');
+            const roleBadge = document.getElementById('sidebar-role-badge');
+
+            if (user) {
+                headerBtn.innerHTML = `
+                    <button onclick="openSidebar()" class="w-10 h-10 bg-red-950/80 border border-red-800/60 rounded-full flex items-center justify-center text-red-300 hover:text-white shadow-lg transition-all">
+                        <i class="fa-solid fa-bars text-sm"></i>
+                    </button>
+                `;
+                navProfileBtn.innerHTML = `
+                    <i class="fa-solid fa-user-check text-base"></i>
+                    <span class="mt-1 font-medium">โปรไฟล์</span>
+                `;
+                document.getElementById('sidebar-email').innerText = user.email;
+
+                if (user.email === 'admin@shop.com') {
+                    adminBtn.classList.remove('hidden');
+                    roleBadge.innerText = "ผู้ดูแลระบบ (Admin)";
+                    roleBadge.className = "text-[10px] text-emerald-400 font-bold";
+                    loadAdminData();
+                } else {
+                    adminBtn.classList.add('hidden');
+                    roleBadge.innerText = "สมาชิกทั่วไป";
+                    roleBadge.className = "text-[10px] text-red-400";
+                }
+                loadUserData(user.uid);
+                loadHistory();
+                loadUserTopupHistory();
+            } else {
+                headerBtn.innerHTML = `<button onclick="openModal('login-modal')" class="cyber-btn text-white text-xs font-semibold px-4 py-2 rounded-full shadow-lg">เข้าสู่ระบบ</button>`;
+                navProfileBtn.innerHTML = `
+                    <i class="fa-solid fa-user text-base"></i>
+                    <span class="mt-1 font-medium">เข้าสู่ระบบ</span>
+                `;
+                if(adminBtn) adminBtn.classList.add('hidden');
+                switchTab('home');
+            }
+            loadProducts();
+            loadSettings();
+        });
+
+        // ฟังก์ชันสมัครสมาชิก: สมัครเสร็จปุ๊บ ล็อกอินและอัปเดตสถานะอัตโนมัติทันที
+        window.handleRegister = async () => {
+            const email = document.getElementById('reg-email').value.trim();
+            const password = document.getElementById('reg-password').value;
+            const confirmPassword = document.getElementById('reg-confirm-password').value;
+
+            if(!email || !password || !confirmPassword) {
+                return showToast("แจ้งเตือน", "กรุณากรอกข้อมูลให้ครบทุกช่อง", "warning");
+            }
+            if(password.length < 6) {
+                return showToast("แจ้งเตือน", "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษรขึ้นไป", "warning");
+            }
+            if(password !== confirmPassword) {
+                return showToast("รหัสผ่านไม่ตรงกัน", "กรุณายืนยันรหัสผ่านให้ตรงกัน", "warning");
+            }
+
+            try {
+                const res = await createUserWithEmailAndPassword(auth, email, password);
+                await setDoc(doc(db, "users", res.user.uid), { 
+                    email: email, 
+                    credit: 0, 
+                    role: email === 'admin@shop.com' ? 'admin' : 'user',
+                    createdAt: serverTimestamp() 
+                });
+                
+                document.getElementById('reg-email').value = '';
+                document.getElementById('reg-password').value = '';
+                document.getElementById('reg-confirm-password').value = '';
+
+                closeModal('register-modal');
+                showToast("สมัครสมาชิกสำเร็จ!", `ยินดีต้อนรับคุณ ${email}`, "success");
+            } catch (err) { 
+                showToast("ข้อผิดพลาด", err.message, "warning"); 
+            }
+        };
+
+        window.handleLogin = async () => {
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+            if(!email || !password) return showToast("แจ้งเตือน", "กรุณากรอกอีเมลและรหัสผ่าน", "warning");
+
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                showToast("สำเร็จ", "เข้าสู่ระบบสำเร็จ!", "success");
+                closeModal('login-modal');
+                document.getElementById('login-email').value = '';
+                document.getElementById('login-password').value = '';
+            } catch (err) { showToast("ข้อผิดพลาด", err.message, "warning"); }
+        };
+
+        window.logout = () => {
+            signOut(auth);
+            showToast("ออกจากระบบ", "คุณได้ออกจากระบบแล้ว", "warning");
+        };
+
+        async function loadUserData(uid) {
+            const userSnap = await getDoc(doc(db, "users", uid));
+            if (userSnap.exists()) {
+                const data = userSnap.data();
+                const credit = data.credit || 0;
+                document.getElementById('sidebar-credit').innerText = credit.toFixed(2);
+            }
+        }
+
+        async function loadSettings() {
+            try {
+                const settingsSnap = await getDoc(doc(db, "settings", "payment"));
+                if (settingsSnap.exists()) {
+                    const data = settingsSnap.data();
+                    if(data.qrUrl) document.getElementById('display-qr-img').src = data.qrUrl;
+                    if(data.qrName) {
+                        document.getElementById('display-qr-name').innerText = data.qrName;
+                    }
+                }
+            } catch(e) { console.log(e); }
+        }
+
+        window.saveQRSettingsDirect = async () => {
+            const fileInput = document.getElementById('admin-qr-file');
+            const qrName = document.getElementById('admin-qr-name').value.trim();
+
+            if (!qrName && fileInput.files.length === 0) {
+                return showToast("แจ้งเตือน", "กรุณาอัปโหลดรูปภาพ QR Code หรือใส่ชื่อบัญชี", "warning");
+            }
+
+            showToast("กำลังบันทึก...", "กำลังอัปโหลดรูปภาพ QR Code กรุณารอสักครู่", "success");
+
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    const qrBase64 = e.target.result;
+                    try {
+                        await setDoc(doc(db, "settings", "payment"), { 
+                            qrUrl: qrBase64, 
+                            qrName: qrName || "สแกน QR Code เพื่อชำระเงิน" 
+                        }, { merge: true });
+                        showToast("สำเร็จ", "อัปโหลดและบันทึก QR Code สำเร็จ!", "success");
+                        loadSettings();
+                    } catch(err) {
+                        showToast("ข้อผิดพลาด", err.message, "warning");
+                    }
+                };
+                reader.readAsDataURL(file);
+            } else {
+                try {
+                    await setDoc(doc(db, "settings", "payment"), { 
+                        qrName: qrName 
+                    }, { merge: true });
+                    showToast("สำเร็จ", "บันทึกชื่อบัญชีรับเงินสำเร็จ!", "success");
+                    loadSettings();
+                } catch(err) {
+                    showToast("ข้อผิดพลาด", err.message, "warning");
+                }
+            }
+        };
+
+        window.submitSlipPayment = async () => {
+            if (!currentUser) return showToast("แจ้งเตือน", "กรุณาเข้าสู่ระบบก่อนแจ้งสลิป", "warning");
+            const amount = Number(document.getElementById('topup-amount').value);
+            const sender = document.getElementById('topup-sender').value;
+            const fileInput = document.getElementById('topup-slip-file');
+
+            if (!amount || !sender || fileInput.files.length === 0) {
+                return showToast("แจ้งเตือน", "กรุณากรอกข้อมูลและแนบสลิปให้ครบถ้วน", "warning");
+            }
+
+            showToast("กำลังส่งข้อมูล...", "กำลังอัปโหลดสลิปแจ้งแอดมิน กรุณารอสักครู่", "success");
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = async function(e) {
+                const slipBase64 = e.target.result;
+                try {
+                    await addDoc(collection(db, "slips"), {
+                        uid: currentUser.uid,
+                        email: currentUser.email,
+                        amount: amount,
+                        sender: sender,
+                        slipUrl: slipBase64,
+                        status: 'pending',
+                        createdAt: serverTimestamp()
+                    });
+
+                    showToast("ส่งสลิปสำเร็จ!", "ระบบส่งข้อมูลให้แอดมินเรียบร้อย รอตรวจสอบ", "success");
+                    document.getElementById('topup-amount').value = '';
+                    document.getElementById('topup-sender').value = '';
+                    document.getElementById('topup-slip-file').value = '';
+                    switchTab('history');
+                    loadUserTopupHistory();
+                } catch(err) {
+                    showToast("ข้อผิดพลาด", err.message, "warning");
+                }
+            };
+            reader.readAsDataURL(file);
+        };
+
+        window.approveSlip = async (slipId, uid, amount, userEmail) => {
+            if(!confirm(`ยืนยันการอนุมัติเติมเงิน ${amount} บาท ให้กับ ${userEmail}?`)) return;
+            try {
+                const userRef = doc(db, "users", uid);
+                const userSnap = await getDoc(userRef);
+                const currentCredit = userSnap.data() ? (userSnap.data().credit || 0) : 0;
+                await updateDoc(userRef, { credit: currentCredit + amount });
+                await updateDoc(doc(db, "slips", slipId), { status: 'approved', approvedAt: serverTimestamp() });
+
+                showToast("อนุมัติสำเร็จ!", `เติมเงินให้ ${userEmail} จำนวน ${amount} ฿ เรียบร้อย`, "success");
+                loadAdminData();
+            } catch(err) { showToast("ข้อผิดพลาด", err.message, "warning"); }
+        };
+
+        window.rejectSlip = async (slipId) => {
+            if(!confirm("ยืนยันปฏิเสธรายการสลิปนี้?")) return;
+            try {
+                await updateDoc(doc(db, "slips", slipId), { status: 'rejected' });
+                showToast("ปฏิเสธเรียบร้อย", "ยกเลิกรายการสลิปนี้แล้ว", "warning");
+                loadAdminData();
+            } catch(err) { showToast("ข้อผิดพลาด", err.message, "warning"); }
+        };
+
+        window.adjustUserCredit = async () => {
+            const targetEmail = document.getElementById('admin-target-email').value;
+            const addAmount = Number(document.getElementById('admin-add-credit').value);
+            if(!targetEmail || !addAmount) return showToast("แจ้งเตือน", "กรุณากรอกข้อมูลให้ครบ", "warning");
+
+            try {
+                const usersSnap = await getDocs(collection(db, "users"));
+                let foundDocId = null;
+                let currentCred = 0;
+
+                usersSnap.forEach(d => {
+                    if(d.data().email === targetEmail) {
+                        foundDocId = d.id;
+                        currentCred = d.data().credit || 0;
+                    }
+                });
+
+                if(!foundDocId) return showToast("ไม่พบผู้ใช้", "ไม่พบอีเมลนี้ในระบบสมาชิก", "warning");
+
+                await updateDoc(doc(db, "users", foundDocId), { credit: currentCred + addAmount });
+                showToast("สำเร็จ", `เติมเครดิตให้ ${targetEmail} จำนวน ${addAmount} ฿ เรียบร้อย!`, "success");
+                document.getElementById('admin-target-email').value = '';
+                document.getElementById('admin-add-credit').value = '';
+                loadAdminData();
+            } catch(err) { showToast("ข้อผิดพลาด", err.message, "warning"); }
+        };
+
+        window.addProduct = async () => {
+            if (!currentUser) return showToast("แจ้งเตือน", "กรุณาเข้าสู่ระบบก่อน", "warning");
+            const gameInput = document.getElementById('admin-game').value.trim();
+            const title = document.getElementById('admin-title').value.trim();
+            const price = Number(document.getElementById('admin-price').value);
+            const accountsRaw = document.getElementById('admin-accounts').value;
+            const imageFileInput = document.getElementById('admin-image-file');
+
+            if (!gameInput || !title || !price || !accountsRaw) {
+                return showToast("แจ้งเตือน", "กรุณากรอกข้อมูลสำคัญให้ครบถ้วน", "warning");
+            }
+
+            const accountsArray = accountsRaw.split('\n').map(item => item.trim()).filter(item => item.length > 0);
+            if (accountsArray.length === 0) return showToast("แจ้งเตือน", "กรุณาใส่ข้อมูลไอดีอย่างน้อย 1 ไอดี", "warning");
+
+            showToast("กำลังประมวลผล...", "กำลังบันทึกข้อมูลสินค้า กรุณารอสักครู่", "success");
+
+            if (imageFileInput.files.length > 0) {
+                const file = imageFileInput.files[0];
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    const imageBase64 = e.target.result;
+                    await saveProductToDB(gameInput, title, imageBase64, price, accountsArray);
+                };
+                reader.readAsDataURL(file);
+            } else {
+                const defaultImg = 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=500&auto=format&fit=crop&q=60';
+                await saveProductToDB(gameInput, title, defaultImg, price, accountsArray);
+            }
+        };
+
+        async function saveProductToDB(game, title, imageUrl, price, accounts) {
+            try {
+                await addDoc(collection(db, "products"), {
+                    game: game, 
+                    title: title, 
+                    imageUrl: imageUrl,
+                    price: price, 
+                    accounts: accounts, 
+                    createdAt: serverTimestamp()
+                });
+                showToast("สำเร็จ", `วางสินค้าหมวดหมู่ [${game}] เรียบร้อย!`, "success");
+                document.getElementById('admin-game').value = '';
+                document.getElementById('admin-title').value = '';
+                document.getElementById('admin-image-file').value = '';
+                document.getElementById('admin-price').value = '';
+                document.getElementById('admin-accounts').value = '';
+                
+                switchAdminSubTab('manage');
+                loadProducts();
+                loadAdminData();
+            } catch (err) { showToast("ข้อผิดพลาด", err.message, "warning"); }
+        }
+
+        window.openEditProductModal = async (id) => {
+            try {
+                const docSnap = await getDoc(doc(db, "products", id));
+                if (docSnap.exists()) {
+                    const p = docSnap.data();
+                    document.getElementById('edit-product-id').value = id;
+                    document.getElementById('edit-game').value = p.game || '';
+                    document.getElementById('edit-title').value = p.title || '';
+                    document.getElementById('edit-price').value = p.price || 0;
+                    document.getElementById('edit-accounts').value = p.accounts ? p.accounts.join('\n') : '';
+                    openModal('edit-product-modal');
+                }
+            } catch (err) {
+                showToast("ข้อผิดพลาด", err.message, "warning");
+            }
+        };
+
+        window.updateProductData = async () => {
+            const id = document.getElementById('edit-product-id').value;
+            const game = document.getElementById('edit-game').value.trim();
+            const title = document.getElementById('edit-title').value.trim();
+            const price = Number(document.getElementById('edit-price').value);
+            const accountsRaw = document.getElementById('edit-accounts').value;
+
+            if(!game || !title || !price) {
+                return showToast("แจ้งเตือน", "กรุณากรอกข้อมูลให้ครบถ้วน", "warning");
+            }
+
+            const accountsArray = accountsRaw.split('\n').map(item => item.trim()).filter(item => item.length > 0);
+
+            try {
+                await updateDoc(doc(db, "products", id), {
+                    game: game,
+                    title: title,
+                    price: price,
+                    accounts: accountsArray
+                });
+                showToast("สำเร็จ", "แก้ไขข้อมูลสินค้าเรียบร้อยแล้ว", "success");
+                closeModal('edit-product-modal');
+                loadProducts();
+                loadAdminData();
+            } catch (err) {
+                showToast("ข้อผิดพลาด", err.message, "warning");
+            }
+        };
+
+        window.deleteProduct = async (id) => {
+            if (!confirm("ยืนยันการลบสินค้านี้ออกจากระบบ?")) return;
+            try {
+                await deleteDoc(doc(db, "products", id));
+                showToast("สำเร็จ", "ลบสินค้าออกจากระบบเรียบร้อยแล้ว", "success");
+                loadProducts();
+                loadAdminData();
+            } catch (err) { showToast("ข้อผิดพลาด", err.message, "warning"); }
+        };
+
+        async function loadProducts() {
+            const listEl = document.getElementById('product-list');
+            const searchVal = document.getElementById('search-input') ? document.getElementById('search-input').value.toLowerCase() : '';
+            if(!listEl) return;
+            listEl.innerHTML = `<div class="text-center text-xs text-gray-500 col-span-2 py-10">กำลังโหลดข้อมูล...</div>`;
+            try {
+                const querySnapshot = await getDocs(collection(db, "products"));
+                let html = '';
+                let categories = new Set();
+
+                querySnapshot.forEach((docSnap) => {
+                    const p = docSnap.data();
+                    p.id = docSnap.id;
+                    if(p.game) categories.add(p.game);
+
+                    const stockCount = p.accounts ? p.accounts.length : 0;
+                    
+                    if (stockCount > 0 && (currentFilter === 'all' || p.game.toLowerCase() === currentFilter.toLowerCase())) {
+                        if (!searchVal || p.title.toLowerCase().includes(searchVal) || p.game.toLowerCase().includes(searchVal)) {
+                            const imgUrl = p.imageUrl || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=500&auto=format&fit=crop&q=60';
+                            html += `
+                                <div class="cyber-card rounded-2xl overflow-hidden flex flex-col justify-between space-y-2 transition-all hover:border-red-500/60">
+                                    <div class="h-28 w-full overflow-hidden relative">
+                                        <img src="${imgUrl}" alt="${p.title}" class="w-full h-full object-cover">
+                                        <span class="absolute top-2 left-2 text-[9px] bg-red-950/90 text-red-300 px-2 py-0.5 rounded-full font-semibold border border-red-800/40">${p.game}</span>
+                                        <span class="absolute top-2 right-2 text-[9px] bg-emerald-950/90 text-emerald-300 px-2 py-0.5 rounded-full font-medium"><i class="fa-solid fa-box mr-1"></i>${stockCount}</span>
+                                    </div>
+                                    <div class="p-3 pt-0 space-y-2">
+                                        <h3 class="text-xs font-bold text-white line-clamp-1">${p.title}</h3>
+                                        <div class="flex justify-between items-center pt-1 border-t border-red-950/60">
+                                            <span class="text-red-400 text-xs font-extrabold">${p.price} ฿</span>
+                                            <button onclick="buyProduct('${p.id}', ${p.price})" class="cyber-btn text-white text-[10px] px-3 py-1.5 rounded-xl font-semibold shadow-md">ซื้อเลย</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    }
+                });
+
+                renderCategoryButtons(categories);
+                listEl.innerHTML = html || `<div class="text-center text-xs text-gray-500 col-span-2 py-10">ไม่พบสินค้าในระบบ</div>`;
+            } catch (err) { console.error(err); }
+        }
+
+        function renderCategoryButtons(categories) {
+            const container = document.getElementById('category-buttons');
+            if(!container) return;
+            
+            let html = `<button onclick="filterCategory('all')" class="cat-btn px-4 py-1.5 rounded-full text-xs font-medium ${currentFilter === 'all' ? 'bg-red-700 text-white shadow-lg shadow-red-950/50' : 'bg-slate-950/80 text-gray-300 border border-red-950'} shrink-0 transition-all">ทั้งหมด</button>`;
+            
+            categories.forEach(cat => {
+                const isActive = currentFilter.toLowerCase() === cat.toLowerCase();
+                html += `<button onclick="filterCategory('${cat}')" class="cat-btn px-4 py-1.5 rounded-full text-xs font-medium ${isActive ? 'bg-red-700 text-white shadow-lg shadow-red-950/50' : 'bg-slate-950/80 text-gray-300 border border-red-950'} shrink-0 transition-all">${cat}</button>`;
+            });
+            container.innerHTML = html;
+        }
+
+        window.filterCategory = function(cat) {
+            currentFilter = cat;
+            loadProducts();
+        };
+
+        window.buyProduct = async (id, price) => {
+            if (!currentUser) {
+                openModal('login-modal');
+                return showToast("แจ้งเตือน", "กรุณาเข้าสู่ระบบก่อนซื้อสินค้า", "warning");
+            }
+            const userRef = doc(db, "users", currentUser.uid);
+            const userSnap = await getDoc(userRef);
+            const credit = userSnap.data() ? (userSnap.data().credit || 0) : 0;
+
+            if (credit < price) return showToast("ยอดเงินไม่พอ", "เครดิตของคุณไม่พอ กรุณาเติมเงิน!", "warning");
+            if (!confirm(`ยืนยันการซื้อสินค้าราคา ${price} บาท?`)) return;
+
+            try {
+                const productRef = doc(db, "products", id);
+                const productSnap = await getDoc(productRef);
+                const pData = productSnap.data();
+
+                if (!pData.accounts || pData.accounts.length === 0) {
+                    showToast("สินค้าหมด", "สินค้าหมดสต็อกแล้ว!", "warning");
+                    loadProducts();
+                    return;
+                }
+
+                const grantedAccount = pData.accounts[0];
+                const remainingAccounts = pData.accounts.slice(1);
+
+                await updateDoc(userRef, { credit: credit - price });
+                await updateDoc(productRef, { accounts: remainingAccounts });
+                
+                await addDoc(collection(db, "orders"), {
+                    uid: currentUser.uid, 
+                    email: currentUser.email,
+                    title: pData.title,
+                    account: grantedAccount, 
+                    price, 
+                    purchasedAt: serverTimestamp()
+                });
+
+                showToast("สั่งซื้อสำเร็จ!", `รับข้อมูลไอดี: ${grantedAccount}`, "success");
+                loadUserData(currentUser.uid);
+                loadProducts();
+                loadHistory();
+                if(currentUser.email === 'admin@shop.com') loadAdminData();
+            } catch (err) { showToast("ข้อผิดพลาด", err.message, "warning"); }
+        };
+
+        window.loadHistory = async () => {
+            if (!currentUser) return;
+            const historyList = document.getElementById('history-list');
+            const querySnapshot = await getDocs(collection(db, "orders"));
+            let html = '';
+            querySnapshot.forEach((docSnap) => {
+                const o = docSnap.data();
+                if (o.uid === currentUser.uid) {
+                    html += `
+                        <div class="cyber-card p-3.5 rounded-2xl flex justify-between items-center text-xs">
+                            <div class="space-y-1">
+                                <p class="text-white font-bold">${o.title || 'ไอดีเกม'}</p>
+                                <p class="text-[10px] text-red-300">ไอดี: <span class="select-all bg-slate-950 border border-red-950 px-2 py-0.5 rounded text-red-400 font-mono">${o.account}</span></p>
+                            </div>
+                            <div class="text-right space-y-1">
+                                <span class="text-red-400 font-bold">${o.price} ฿</span>
+                                <p class="text-[10px] text-emerald-400 font-medium">สำเร็จ</p>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+            historyList.innerHTML = html || `<p class="text-xs text-gray-500 text-center py-6">ยังไม่มีประวัติการซื้อสินค้า</p>`;
+        };
+
+        async function loadUserTopupHistory() {
+            if (!currentUser) return;
+            const topupListEl = document.getElementById('user-topup-history-list');
+            if(!topupListEl) return;
+
+            const slipsSnap = await getDocs(collection(db, "slips"));
+            let html = '';
+
+            slipsSnap.forEach((docSnap) => {
+                const s = docSnap.data();
+                if (s.uid === currentUser.uid) {
+                    let statusBadge = '';
+                    if (s.status === 'approved') {
+                        statusBadge = '<span class="text-[10px] text-emerald-400 font-semibold bg-emerald-950/50 px-2 py-0.5 rounded border border-emerald-800/40">อนุมัติแล้ว</span>';
+                    } else if (s.status === 'rejected') {
+                        statusBadge = '<span class="text-[10px] text-rose-400 font-semibold bg-rose-950/50 px-2 py-0.5 rounded border border-rose-800/40">ไม่ผ่าน</span>';
+                    } else {
+                        statusBadge = '<span class="text-[10px] text-yellow-400 font-semibold bg-yellow-950/50 px-2 py-0.5 rounded border border-yellow-800/40">รอตรวจสอบ</span>';
+                    }
+
+                    html += `
+                        <div class="cyber-card p-3.5 rounded-2xl flex justify-between items-center text-xs">
+                            <div class="space-y-1">
+                                <p class="text-white font-bold">โอนผ่าน: ${s.sender}</p>
+                                <button onclick="viewSlipImage('${s.slipUrl}')" class="text-[10px] text-red-400 underline hover:text-white font-medium">
+                                    <i class="fa-solid fa-image mr-1"></i>ดูสลิปที่แนบ
+                                </button>
+                            </div>
+                            <div class="text-right space-y-1">
+                                <span class="text-red-400 font-bold">+${s.amount} ฿</span>
+                                <div>${statusBadge}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+            topupListEl.innerHTML = html || `<p class="text-xs text-gray-500 text-center py-6">ยังไม่มีประวัติการเติมเงิน</p>`;
+        }
+
+        let cachedMembers = [];
+
+        window.filterAdminMembers = function() {
+            const searchVal = document.getElementById('admin-search-member').value.toLowerCase();
+            const membersListEl = document.getElementById('admin-members-list');
+            if(!membersListEl) return;
+
+            let html = '';
+            cachedMembers.forEach(m => {
+                if(!searchVal || m.email.toLowerCase().includes(searchVal)) {
+                    html += `
+                        <div class="bg-slate-950 border border-red-950 p-2.5 rounded-xl text-[11px] flex justify-between items-center">
+                            <div>
+                                <p class="text-white font-bold truncate w-44"><i class="fa-solid fa-user text-red-400 mr-1.5"></i>${m.email}</p>
+                                <p class="text-[10px] text-gray-400">บทบาท: <span class="text-red-300">${m.role || 'user'}</span></p>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-emerald-400 font-extrabold">${(m.credit || 0).toFixed(2)} ฿</span>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+            membersListEl.innerHTML = html || `<p class="text-[11px] text-gray-500 text-center py-2">ไม่พบสมาชิกที่ค้นหา</p>`;
+        }
+
+        async function loadAdminData() {
+            const adminOrdersList = document.getElementById('admin-orders-list');
+            const adminProductsList = document.getElementById('admin-products-list');
+            const totalProductsEl = document.getElementById('admin-total-products');
+            const adminSlipsList = document.getElementById('admin-slips-list');
+            const pendingCountEl = document.getElementById('pending-slips-count');
+            const statsEl = document.getElementById('admin-stats');
+            if(!adminOrdersList) return;
+
+            const usersSnap = await getDocs(collection(db, "users"));
+            cachedMembers = [];
+            usersSnap.forEach(d => cachedMembers.push(d.data()));
+            filterAdminMembers();
+
+            const slipsSnap = await getDocs(collection(db, "slips"));
+            let slipsHtml = '';
+            let pendingCount = 0;
+
+            slipsSnap.forEach((docSnap) => {
+                const s = docSnap.data();
+                if (s.status === 'pending') {
+                    pendingCount++;
+                    slipsHtml += `
+                        <div class="bg-slate-900 border border-red-900/50 p-3 rounded-xl text-xs space-y-2">
+                            <div class="flex justify-between items-center border-b border-red-950 pb-1.5">
+                                <span class="text-gray-300 font-bold">${s.email}</span>
+                                <span class="text-yellow-400 font-extrabold text-sm">${s.amount} ฿</span>
+                            </div>
+                            <div class="flex justify-between items-center text-[11px] text-gray-400">
+                                <span><i class="fa-solid fa-building-columns text-red-400 mr-1"></i>โอนจาก: ${s.sender}</span>
+                                <button onclick="viewSlipImage('${s.slipUrl}')" class="text-red-400 underline hover:text-white font-medium">
+                                    <i class="fa-solid fa-image mr-1"></i>ดูรูปสลิป
+                                </button>
+                            </div>
+                            <div class="flex space-x-2 pt-1">
+                                <button onclick="approveSlip('${docSnap.id}', '${s.uid}', ${s.amount}, '${s.email}')" class="w-1/2 bg-emerald-600 hover:bg-emerald-700 text-white py-1.5 rounded-lg text-[11px] font-bold shadow transition-all">
+                                    <i class="fa-solid fa-check mr-1"></i>อนุมัติ
+                                </button>
+                                <button onclick="rejectSlip('${docSnap.id}')" class="w-1/2 bg-rose-950 hover:bg-rose-900 border border-rose-800/40 text-rose-300 py-1.5 rounded-lg text-[11px] font-bold transition-all">
+                                    <i class="fa-solid fa-xmark mr-1"></i>ปฏิเสธ
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+            pendingCountEl.innerText = `${pendingCount} รายการ`;
+            adminSlipsList.innerHTML = slipsHtml || `<p class="text-[11px] text-gray-500 text-center py-4">ไม่มีสลิปรอการตรวจสอบ</p>`;
+
+            const ordersSnap = await getDocs(collection(db, "orders"));
+            let ordersHtml = '';
+            let totalSales = 0;
+
+            ordersSnap.forEach((docSnap) => {
+                const o = docSnap.data();
+                totalSales += (o.price || 0);
+                ordersHtml += `
+                    <div class="bg-slate-950/80 border border-red-950 p-2.5 rounded-xl text-[11px] flex justify-between items-center">
+                        <div>
+                            <p class="text-white font-semibold">${o.title} <span class="text-gray-400 font-normal">(${o.email ? o.email.split('@')[0] : 'user'})</span></p>
+                            <p class="text-[10px] text-red-300 font-mono">ID: ${o.account}</p>
+                        </div>
+                        <span class="text-red-400 font-bold">${o.price} ฿</span>
+                    </div>
+                `;
+            });
+            statsEl.innerText = `ยอดขายรวม: ${totalSales} ฿`;
+            adminOrdersList.innerHTML = ordersHtml || `<p class="text-[11px] text-gray-500 text-center py-2">ยังไม่มีรายการซื้อในระบบ</p>`;
+
+            const productsSnap = await getDocs(collection(db, "products"));
+            let prodHtml = '';
+            let prodCount = 0;
+
+            productsSnap.forEach((docSnap) => {
+                prodCount++;
+                const p = docSnap.data();
+                const stockCount = p.accounts ? p.accounts.length : 0;
+                prodHtml += `
+                    <div class="bg-slate-950/80 border border-red-950 p-2.5 rounded-xl text-[11px] flex justify-between items-center">
+                        <div class="flex items-center space-x-2.5">
+                            <img src="${p.imageUrl || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=500&auto=format&fit=crop&q=60'}" class="w-10 h-10 rounded-lg object-cover border border-red-900">
+                            <div>
+                                <p class="text-white font-semibold line-clamp-1">${p.title} <span class="text-red-400">(${p.game})</span></p>
+                                <p class="text-[10px] text-emerald-400">ราคา: ${p.price} ฿ | สต็อกคงเหลือ: ${stockCount} ไอดี</p>
+                            </div>
+                        </div>
+                        <div class="flex space-x-1 shrink-0">
+                            <button onclick="openEditProductModal('${docSnap.id}')" class="bg-sky-950 hover:bg-sky-900 text-sky-300 border border-sky-800/40 px-2 py-1 rounded-lg font-medium text-[10px]"><i class="fa-solid fa-pen"></i> แก้ไข</button>
+                            <button onclick="deleteProduct('${docSnap.id}')" class="bg-red-950 hover:bg-red-900 text-red-300 border border-red-800/40 px-2 py-1 rounded-lg font-medium text-[10px]"><i class="fa-solid fa-trash"></i> ลบ</button>
+                        </div>
+                    </div>
+                `;
+            });
+            totalProductsEl.innerText = `${prodCount} รายการ`;
+            adminProductsList.innerHTML = prodHtml || `<p class="text-[11px] text-gray-500 text-center py-2">ยังไม่มีสินค้าในสต็อก</p>`;
+        }
+    </script>
+</body>
+</html>
