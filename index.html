@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyber-Red Store | Ultimate Game Topup & ID Marketplace</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK (Modular v10) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs, updateDoc, deleteDoc, increment, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // ==========================================
+        // ⚙️ FIREBASE CONFIG (กำหนดค่าโปรเจกต์ของคุณ)
+        // ==========================================
+        const firebaseConfig = {
+          apiKey: "AIzaSyBtFjW_LG0kDtQw7btUV2mZAQfE_250Nt0",
+          authDomain: "game-id-shop-37780.firebaseapp.com",
+          projectId: "game-id-shop-37780",
+          storageBucket: "game-id-shop-37780.firebasestorage.app",
+          messagingSenderId: "761665418354",
+          appId: "1:761665418354:web:195f08e9b506cc50147eeb"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        
+        setPersistence(auth, browserLocalPersistence).catch((error) => {
+            console.error("Auth persistence error:", error);
+        });
+
+        const db = getFirestore(app);
+        const googleProvider = new GoogleAuthProvider();
+
+        const ADMIN_EMAILS = [
+            "admin@cyberred.com",
+            "admin@cyberred.store",
+            "admin@shop.com"
+        ];
+
+        window.switchTab = function(tabId) {
+            document.querySelectorAll('.app-section').forEach(sec => sec.classList.add('hidden'));
+            const target = document.getElementById(tabId);
+            if(target) target.classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            closeSideMenu();
+
+            if(tabId === 'market-section') loadMarketProducts();
+            if(tabId === 'orders-section') loadUserOrders();
+            if(tabId === 'admin-section') loadAdminSettings();
+        };
+
+        window.showToast = function(message) {
+            const toast = document.getElementById('custom-toast');
+            document.getElementById('toast-message').innerText = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3500);
+        };
+
+        // 👈 สไลด์เมนูด้านซ้ายแบบสมูท
+        window.openSideMenu = function() {
+            document.getElementById('sideMenuOverlay').classList.remove('hidden');
+            const menu = document.getElementById('sideMenu');
+            menu.classList.remove('-translate-x-full');
+            menu.classList.add('translate-x-0');
+        };
+        window.closeSideMenu = function() {
+            document.getElementById('sideMenuOverlay').classList.add('hidden');
+            const menu = document.getElementById('sideMenu');
+            menu.classList.remove('translate-x-0');
+            menu.classList.add('-translate-x-full');
+        };
+
+        window.handleUserNavClick = function() {
+            if(auth.currentUser) {
+                openSideMenu();
+            } else {
+                switchTab('login-section');
+            }
+        };
+
+        window.authFormMode = 'login';
+        window.setAuthMode = function(mode) {
+            window.authFormMode = mode;
+            const title = document.getElementById('page-auth-title');
+            const btn = document.getElementById('page-auth-btn');
+            const switchBtn = document.getElementById('page-auth-switch-text');
+            const errBox = document.getElementById('page-auth-error');
+            if(errBox) errBox.innerText = '';
+
+            if(mode === 'login') {
+                title.innerText = 'เข้าสู่ระบบ';
+                btn.innerText = 'เข้าสู่ระบบทันที';
+                switchBtn.innerHTML = 'ยังไม่มีบัญชี? <span onclick="setAuthMode(\'register\')" class="text-red-500 font-bold underline cursor-pointer">สมัครสมาชิก</span>';
+            } else {
+                title.innerText = 'สมัครสมาชิก';
+                btn.innerText = 'สมัครสมาชิก & เข้าสู่ระบบ';
+                switchBtn.innerHTML = 'มีบัญชีอยู่แล้ว? <span onclick="setAuthMode(\'login\')" class="text-red-500 font-bold underline cursor-pointer">เข้าสู่ระบบ</span>';
+            }
+        };
+
+        window.processAuth = async function() {
+            const email = document.getElementById('page-auth-email').value.trim();
+            const pass = document.getElementById('page-auth-pass').value.trim();
+            const errorBox = document.getElementById('page-auth-error');
+            errorBox.innerText = '';
+
+            if(!email || !pass) {
+                errorBox.innerText = '⚠️ กรุณากรอกอีเมลและรหัสผ่านให้ครบถ้วน';
+                return;
+            }
+
+            try {
+                if(window.authFormMode === 'login') {
+                    await signInWithEmailAndPassword(auth, email, pass);
+                    showToast('เข้าสู่ระบบสำเร็จ!');
+                    switchTab('home-section');
+                } else {
+                    const isAdmin = ADMIN_EMAILS.includes(email);
+                    const cred = await createUserWithEmailAndPassword(auth, email, pass);
+                    await setDoc(doc(db, "users", cred.user.uid), {
+                        email: email,
+                        balance: 0.00,
+                        role: isAdmin ? 'admin' : 'user',
+                        createdAt: new Date().toISOString()
+                    });
+                    showToast('สมัครสมาชิกสำเร็จและเข้าสู่ระบบแล้ว!');
+                    switchTab('home-section');
+                }
+            } catch(err) {
+                if(err.code === 'auth/email-already-in-use') errorBox.innerText = '⚠️ อีเมลนี้ถูกใช้งานในระบบแล้ว';
+                else if(err.code === 'auth/weak-password') errorBox.innerText = '⚠️ รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร';
+                else errorBox.innerText = '⚠️ เกิดข้อผิดพลาด: ' + err.message;
+            }
+        };
+
+        window.loginWithGoogle = async function() {
+            try {
+                const result = await signInWithPopup(auth, googleProvider);
+                const user = result.user;
+                const userRef = doc(db, "users", user.uid);
+                const snap = await getDoc(userRef);
+
+                const isAdmin = ADMIN_EMAILS.includes(user.email);
+                if(!snap.exists()) {
+                    await setDoc(userRef, {
+                        email: user.email,
+                        balance: 0.00,
+                        role: isAdmin ? 'admin' : 'user',
+                        createdAt: new Date().toISOString()
+                    });
+                } else if(isAdmin && snap.data().role !== 'admin') {
+                    await updateDoc(userRef, { role: 'admin' });
+                }
+                showToast('เข้าสู่ระบบด้วย Google สำเร็จ!');
+                switchTab('home-section');
+            } catch(e) {
+                alert('เกิดข้อผิดพลาดในการล็อกอินด้วย Google: ' + e.message);
+            }
+        };
+
+        window.logout = async function() {
+            await signOut(auth);
+            showToast('ออกจากระบบเรียบร้อยแล้ว');
+            switchTab('home-section');
+        };
+
+        // 🛡️ Auth Observer
+        onAuthStateChanged(auth, async (user) => {
+            const sideEmail = document.getElementById('side-user-email');
+            const sideBalance = document.getElementById('side-user-balance');
+            const sideRoleBadge = document.getElementById('side-role-badge');
+            const adminSection = document.getElementById('admin-section');
+            const adminSideBtn = document.getElementById('side-admin-btn');
+            
+            const topNavBtn = document.getElementById('top-auth-btn');
+            const bottomNavLabel = document.getElementById('bottom-nav-auth-label');
+            const bottomNavIcon = document.getElementById('bottom-nav-auth-icon');
+            const dynamicCenterStatus = document.getElementById('dynamic-center-auth-status');
+
+            if(user) {
+                const isMatchAdminEmail = ADMIN_EMAILS.includes(user.email);
+                let isAdmin = isMatchAdminEmail;
+
+                const userRef = doc(db, "users", user.uid);
+                try {
+                    let snap = await getDoc(userRef);
+                    if(snap.exists()) {
+                        const data = snap.data();
+                        if(data.role === 'admin') isAdmin = true;
+                    }
+                    if(isMatchAdminEmail && (!snap.exists() || snap.data().role !== 'admin')) {
+                        await setDoc(userRef, { email: user.email, role: 'admin' }, { merge: true });
+                        isAdmin = true;
+                    }
+                } catch(err) {
+                    console.error("Firestore sync error:", err);
+                }
+
+                if(sideEmail) sideEmail.innerText = user.email;
+                if(sideRoleBadge) {
+                    if(isAdmin) {
+                        sideRoleBadge.className = "text-[10px] bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-md border border-yellow-500/40 font-bold inline-block mt-0.5";
+                        sideRoleBadge.innerText = "ADMINISTRATOR";
+                    } else {
+                        sideRoleBadge.className = "text-[10px] bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-md border border-blue-500/40 font-bold inline-block mt-0.5";
+                        sideRoleBadge.innerText = "VERIFIED MEMBER";
+                    }
+                }
+
+                if(topNavBtn) {
+                    topNavBtn.innerHTML = `
+                        <div class="flex items-center space-x-1">
+                            <span class="w-2 h-2 rounded-full ${isAdmin ? 'bg-yellow-400' : 'bg-emerald-400'}"></span>
+                            <span class="truncate max-w-[100px]">${user.email.split('@')[0]}</span>
+                        </div>
+                    `;
+                    topNavBtn.onclick = openSideMenu;
+                }
+
+                if(bottomNavLabel) bottomNavLabel.innerText = "โปรไฟล์";
+                if(bottomNavIcon) {
+                    bottomNavIcon.innerHTML = `
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                    `;
+                }
+
+                if(isAdmin) {
+                    if(adminSection) adminSection.classList.remove('hidden');
+                    if(adminSideBtn) adminSideBtn.classList.remove('hidden');
+                    loadTopupRequests();
+                    loadProducts();
+                    loadAdminSettings();
+                } else {
+                    if(adminSection) adminSection.classList.add('hidden');
+                    if(adminSideBtn) adminSideBtn.classList.add('hidden');
+                }
+
+                onSnapshot(userRef, (docSnap) => {
+                    if(docSnap.exists()) {
+                        const data = docSnap.data();
+                        const balance = data.balance || 0;
+                        if(sideBalance) sideBalance.innerText = `฿ ${balance.toFixed(2)}`;
+                        if(dynamicCenterStatus) {
+                            dynamicCenterStatus.innerHTML = `
+                                <div class="bg-[#16181e] border border-gray-800 p-4 rounded-3xl shadow-xl inline-flex items-center space-x-4">
+                                    <div class="text-left">
+                                        <p class="text-[10px] text-gray-400">สถานะ: <span class="${isAdmin ? 'text-yellow-400 font-bold' : 'text-blue-400 font-bold'}">${isAdmin ? 'ADMINISTRATOR' : 'VERIFIED MEMBER'}</span></p>
+                                        <h3 class="text-xl font-black text-red-500">฿ ${balance.toFixed(2)}</h3>
+                                    </div>
+                                    <button onclick="switchTab('topup-section')" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow">เติมเงิน</button>
+                                </div>
+                            `;
+                            dynamicCenterStatus.classList.remove('hidden');
+                        }
+                    }
+                });
+
+            } else {
+                if(sideEmail) sideEmail.innerText = "ยังไม่ได้เข้าสู่ระบบ";
+                if(sideBalance) sideBalance.innerText = "฿ 0.00";
+                if(sideRoleBadge) {
+                    sideRoleBadge.className = "text-[10px] bg-gray-800 text-gray-400 px-2 py-0.5 rounded-md font-medium inline-block mt-0.5";
+                    sideRoleBadge.innerText = "GUEST USER";
+                }
+
+                if(dynamicCenterStatus) dynamicCenterStatus.classList.add('hidden');
+
+                if(topNavBtn) {
+                    topNavBtn.innerHTML = `<span>เข้าสู่ระบบ</span>`;
+                    topNavBtn.onclick = () => switchTab('login-section');
+                }
+
+                if(bottomNavLabel) bottomNavLabel.innerText = "เข้าสู่ระบบ";
+                if(bottomNavIcon) {
+                    bottomNavIcon.innerHTML = `
+                        <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
+                    `;
+                }
+
+                if(adminSection) adminSection.classList.add('hidden');
+                if(adminSideBtn) adminSideBtn.classList.add('hidden');
+            }
+            loadMarketProducts();
+        });
+
+        onSnapshot(doc(db, "settings", "store_announcement"), (docSnap) => {
+            const marqueeText = document.getElementById('marquee-announcement-text');
+            if(docSnap.exists()) {
+                const d = docSnap.data();
+                if(marqueeText) marqueeText.innerText = d.text || "ID2U เป็นเพียง ตัวกลางบริการรับซื้อ-ขายไอดีเกม รับฟรี วันละ 1 PD ใหม่";
+            }
+        });
+
+        async function loadAdminSettings() {
+            try {
+                const snap = await getDoc(doc(db, "settings", "store_qr"));
+                if(snap.exists()) {
+                    const d = snap.data();
+                    const urlInput = document.getElementById('admin-qr-url');
+                    const nameInput = document.getElementById('admin-qr-name');
+                    if(urlInput) urlInput.value = d.url || '';
+                    if(nameInput) nameInput.value = d.name || '';
+                }
+
+                const annSnap = await getDoc(doc(db, "settings", "store_announcement"));
+                if(annSnap.exists()) {
+                    const annInput = document.getElementById('admin-announcement-text');
+                    if(annInput) annInput.value = annSnap.data().text || '';
+                }
+
+                const wheelSnap = await getDoc(doc(db, "settings", "wheel_config"));
+                if(wheelSnap.exists()) {
+                    const data = wheelSnap.data();
+                    document.getElementById('admin-wheel-enabled').checked = data.enabled !== false;
+                    document.getElementById('admin-wheel-prizes').value = (data.prizes || [10, 20, 50, 100, 5, 0]).join(', ');
+                    document.getElementById('admin-wheel-weights').value = (data.weights || [30, 20, 10, 5, 25, 10]).join(', ');
+                }
+            } catch(e) {
+                console.error("Load admin settings error:", e);
+            }
+        }
+
+        window.saveAdminAnnouncement = async function() {
+            const text = document.getElementById('admin-announcement-text').value.trim();
+            if(!text) return alert('กรุณากรอกข้อความประกาศ');
+            try {
+                await setDoc(doc(db, "settings", "store_announcement"), { text: text, updatedAt: new Date().toISOString() });
+                showToast('อัปเดตข้อความประกาศสำเร็จ!');
+            } catch(e) {
+                alert('เกิดข้อผิดพลาด: ' + e.message);
+            }
+        };
+
+        window.saveAdminWheelConfig = async function() {
+            const enabled = document.getElementById('admin-wheel-enabled').checked;
+            const prizesStr = document.getElementById('admin-wheel-prizes').value.trim();
+            const weightsStr = document.getElementById('admin-wheel-weights').value.trim();
+
+            const prizes = prizesStr.split(',').map(item => parseFloat(item.trim())).filter(num => !isNaN(num));
+            const weights = weightsStr.split(',').map(item => parseFloat(item.trim())).filter(num => !isNaN(num));
+
+            if(prizes.length !== weights.length) {
+                return alert('⚠️ จำนวนรางวัลและน้ำหนักเปอร์เซ็นต์ต้องมีจำนวนเท่ากัน!');
+            }
+
+            try {
+                await setDoc(doc(db, "settings", "wheel_config"), {
+                    enabled: enabled,
+                    prizes: prizes,
+                    weights: weights,
+                    updatedAt: new Date().toISOString()
+                });
+                showToast('บันทึกตั้งค่าระบบวงล้อสำเร็จ!');
+            } catch(e) {
+                alert('เกิดข้อผิดพลาด: ' + e.message);
+            }
+        };
+
+        // 🛒 โหลดสินค้าและรองรับหมวดหมู่เกม
+        window.currentCategory = 'all';
+        window.filterCategory = function(cat) {
+            window.currentCategory = cat;
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                btn.classList.remove('bg-red-600', 'text-white');
+                btn.classList.add('bg-[#16181e]', 'text-gray-400');
+            });
+            event.target.classList.remove('bg-[#16181e]', 'text-gray-400');
+            event.target.classList.add('bg-red-600', 'text-white');
+            loadMarketProducts();
+        };
+
+        async function loadMarketProducts() {
+            const container = document.getElementById('market-products-grid');
+            if(!container) return;
+            container.innerHTML = '<p class="text-gray-400 text-xs col-span-full text-center py-6">กำลังโหลดสินค้า...</p>';
+            
+            try {
+                const querySnapshot = await getDocs(collection(db, "products"));
+                container.innerHTML = '';
+                let count = 0;
+
+                querySnapshot.forEach((docSnap) => {
+                    const p = docSnap.data();
+                    const pId = docSnap.id;
+                    const cat = p.category || 'robux';
+
+                    if(window.currentCategory !== 'all' && cat !== window.currentCategory) return;
+                    count++;
+
+                    // หากเป็นบริการเติมเกมแบบ ID-Pass จะแสดงฟอร์มกรอกรหัส
+                    const isIdPassService = (cat === 'robux' || cat === 'topup' || cat === 'gameid');
+
+                    container.innerHTML += `
+                        <div class="id2u-card rounded-2xl overflow-hidden relative group flex flex-col justify-between">
+                            <div>
+                                <div class="absolute top-2 left-2 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow z-10 uppercase">${cat}</div>
+                                <div class="h-36 bg-gray-800 relative overflow-hidden flex flex-col items-center justify-center text-gray-400 font-bold">
+                                    <svg class="w-10 h-10 mb-1 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path></svg>
+                                    <span class="text-xs">CYBER-RED STORE</span>
+                                </div>
+                                <div class="p-4 space-y-2">
+                                    <h4 class="font-bold text-sm text-white truncate">${p.name}</h4>
+                                    <p class="text-xs text-gray-400">${p.desc || 'บริการรวดเร็ว ปลอดภัย 100%'}</p>
+                                    ${isIdPassService ? `
+                                        <div class="space-y-1.5 pt-2">
+                                            <input type="text" id="input-user-${pId}" placeholder="Username / อีเมลเกม" class="w-full bg-black/60 border border-gray-800 rounded-lg p-2 text-[11px] text-white">
+                                            <input type="password" id="input-pass-${pId}" placeholder="Password / รหัสผ่าน" class="w-full bg-black/60 border border-gray-800 rounded-lg p-2 text-[11px] text-white">
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                            <div class="p-4 pt-0">
+                                <div class="flex justify-between items-center pt-3 border-t border-gray-800">
+                                    <span class="text-red-500 font-extrabold text-base">฿ ${p.price}</span>
+                                    <button onclick="buyProduct('${pId}', '${p.name}', ${p.price}, '${cat}')" class="bg-red-600 hover:bg-red-700 text-white text-xs px-4 py-2 rounded-xl font-bold transition shadow">สั่งซื้อเลย</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                if(count === 0) {
+                    container.innerHTML = '<p class="text-gray-400 text-xs col-span-full text-center py-6">ยังไม่มีสินค้าในหมวดหมู่นี้</p>';
+                }
+            } catch(e) {
+                container.innerHTML = '<p class="text-red-400 text-xs col-span-full text-center">เกิดข้อผิดพลาดในการโหลดสินค้า</p>';
+            }
+        }
+
+        window.buyProduct = async function(productId, productName, productPrice, category) {
+            const user = auth.currentUser;
+            if(!user) {
+                showToast('⚠️ กรุณาเข้าสู่ระบบก่อนทำการซื้อสินค้า!');
+                switchTab('login-section');
+                return;
+            }
+
+            let orderDetails = 'สำเร็จอัตโนมัติ';
+            if(category === 'robux' || category === 'topup' || category === 'gameid') {
+                const uVal = document.getElementById(`input-user-${productId}`)?.value.trim() || '';
+                const pVal = document.getElementById(`input-pass-${productId}`)?.value.trim() || '';
+                if(!uVal || !pVal) {
+                    alert('⚠️ กรุณากรอก Username และ Password ของไอดีเกมให้ครบถ้วนก่อนสั่งซื้อ!');
+                    return;
+                }
+                orderDetails = `User: ${uVal} / Pass: ${pVal}`;
+            }
+
+            const promoCode = document.getElementById('checkout-promo-code')?.value.trim() || '';
+            let finalPrice = productPrice;
+
+            if(promoCode === 'CYBERRED50') {
+                finalPrice = Math.max(0, productPrice - 50);
+                showToast('🎟️ ใช้โค้ดส่วนลด 50 บาทสำเร็จ!');
+            }
+
+            if(!confirm(`ยืนยันการสั่งซื้อ "${productName}" ในราคา ${finalPrice} บาท ?`)) return;
+
+            const userRef = doc(db, "users", user.uid);
+            const userSnap = await getDoc(userRef);
+            if(!userSnap.exists()) return alert('ไม่พบข้อมูลผู้ใช้งาน');
+
+            const userData = userSnap.data();
+            const currentBalance = userData.balance || 0;
+
+            if(currentBalance < finalPrice) {
+                alert(`❌ ยอดเงินเครดิตของคุณไม่เพียงพอ! (มีอยู่ ฿${currentBalance.toFixed(2)} ต้องการ ฿${finalPrice}) กรุณาเติมเงิน`);
+                switchTab('topup-section');
+                return;
+            }
+
+            try {
+                await updateDoc(userRef, { balance: increment(-finalPrice) });
+                await addDoc(collection(db, "orders"), {
+                    uid: user.uid,
+                    email: user.email,
+                    productName: productName,
+                    price: finalPrice,
+                    details: orderDetails,
+                    timestamp: new Date().toISOString()
+                });
+
+                showToast('🎉 สั่งซื้อสำเร็จ! แอดมินกำลังดำเนินการให้ ตรวจสอบที่ "คำสั่งซื้อของฉัน"');
+                switchTab('orders-section');
+            } catch(e) {
+                alert('เกิดข้อผิดพลาดในการสั่งซื้อ: ' + e.message);
+            }
+        };
+
+        window.spinLuckyWheel = async function() {
+            const user = auth.currentUser;
+            if(!user) {
+                showToast('⚠️ กรุณาเข้าสู่ระบบก่อนสุ่มวงล้อ!');
+                switchTab('login-section');
+                return;
+            }
+
+            try {
+                const wheelSnap = await getDoc(doc(db, "settings", "wheel_config"));
+                let prizes = [10, 20, 50, 100, 5, 0];
+                let weights = [30, 20, 10, 5, 25, 10];
+
+                if(wheelSnap.exists()) {
+                    const data = wheelSnap.data();
+                    if(data.enabled === false) {
+                        alert('🚧 ขออภัย ระบบวงล้อเสี่ยงโชคกำลังปิดปรับปรุงชั่วคราว');
+                        return;
+                    }
+                    if(data.prizes) prizes = data.prizes;
+                    if(data.weights) weights = data.weights;
+                }
+
+                let totalWeight = weights.reduce((a, b) => a + b, 0);
+                let randomNum = Math.random() * totalWeight;
+                let selectedReward = prizes[0];
+
+                for(let i = 0; i < prizes.length; i++) {
+                    if(randomNum < weights[i]) {
+                        selectedReward = prizes[i];
+                        break;
+                    }
+                    randomNum -= weights[i];
+                }
+
+                const wheelRes = document.getElementById('wheel-result-text');
+                if(selectedReward > 0) {
+                    const userRef = doc(db, "users", user.uid);
+                    await updateDoc(userRef, { balance: increment(selectedReward) });
+                    if(wheelRes) wheelRes.innerText = `🎁 ยินดีด้วยคุณได้รับเครดิตฟรี ฿${selectedReward} เข้ากระเป๋าแล้ว!`;
+                    showToast(`🎉 สุ่มได้เครดิต ฿${selectedReward}!`);
+                } else {
+                    if(wheelRes) wheelRes.innerText = `😢 เสียใจด้วย ไว้ลองใหม่อีกครั้งนะ!`;
+                    showToast(`😢 เกือบได้แล้ว ลองใหม่อีกครั้ง!`);
+                }
+            } catch(e) {
+                alert('เกิดข้อผิดพลาดในการหมุนวงล้อ: ' + e.message);
+            }
+        };
+
+        window.submitDispute = async function() {
+            const user = auth.currentUser;
+            if(!user) return switchTab('login-section');
+            const msg = document.getElementById('dispute-msg').value.trim();
+            if(!msg) return alert('กรุณากรอกรายละเอียดปัญหาที่พบ');
+
+            await addDoc(collection(db, "disputes"), {
+                uid: user.uid,
+                email: user.email,
+                message: msg,
+                status: 'pending',
+                timestamp: new Date().toISOString()
+            });
+            showToast('📩 ส่งเรื่องแจ้งปัญหาสำเร็จ แอดมินจะตรวจสอบโดยเร็ว');
+            document.getElementById('dispute-msg').value = '';
+        };
+
+        async function loadUserOrders() {
+            const user = auth.currentUser;
+            const container = document.getElementById('user-orders-container');
+            if(!container) return;
+
+            if(!user) {
+                container.innerHTML = '<p class="text-gray-400 text-xs text-center py-6">กรุณาเข้าสู่ระบบเพื่อดูประวัติคำสั่งซื้อ</p>';
+                return;
+            }
+
+            container.innerHTML = '<p class="text-gray-400 text-xs text-center py-6">กำลังโหลดคำสั่งซื้อ...</p>';
+            try {
+                const q = query(collection(db, "orders"), where("uid", "==", user.uid));
+                const querySnapshot = await getDocs(q);
+                container.innerHTML = '';
+
+                if(querySnapshot.empty) {
+                    container.innerHTML = '<p class="text-gray-400 text-xs text-center py-6">ยังไม่มีประวัติคำสั่งซื้อสินค้า</p>';
+                    return;
+                }
+
+                querySnapshot.forEach((docSnap) => {
+                    const o = docSnap.data();
+                    container.innerHTML += `
+                        <div class="bg-black/50 p-4 rounded-2xl border border-gray-800 space-y-2">
+                            <div class="flex justify-between items-center">
+                                <h4 class="font-bold text-sm text-white">${o.productName}</h4>
+                                <span class="text-red-400 font-bold text-xs">฿ ${o.price}</span>
+                            </div>
+                            <div class="bg-gray-900 p-3 rounded-xl border border-gray-800 text-xs text-emerald-400 font-mono">
+                                รายละเอียด: ${o.details}
+                            </div>
+                            <p class="text-[10px] text-gray-500">วันที่สั่งซื้อ: ${new Date(o.timestamp).toLocaleString('th-TH')}</p>
+                        </div>
+                    `;
+                });
+            } catch(e) {
+                container.innerHTML = '<p class="text-red-400 text-xs text-center">โหลดคำสั่งซื้อไม่สำเร็จ</p>';
+            }
+        }
+
+        onSnapshot(doc(db, "settings", "store_qr"), (docSnap) => {
+            const qrImg = document.getElementById('user-qr-image');
+            const qrNameDisplay = document.getElementById('user-qr-name');
+            if(docSnap.exists()) {
+                const d = docSnap.data();
+                if(qrImg) qrImg.src = d.url || "https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=CyberRedPromptPay";
+                if(qrNameDisplay) qrNameDisplay.innerText = d.name || " Cyber-Red Store Co., Ltd.";
+            }
+        });
+
+        window.saveAdminQR = async function() {
+            const url = document.getElementById('admin-qr-url').value.trim();
+            const name = document.getElementById('admin-qr-name').value.trim();
+            if(!url || !name) return alert('กรุณากรอกลิงก์รูปภาพ QR และชื่อบัญชีให้ครบถ้วน');
+
+            try {
+                await setDoc(doc(db, "settings", "store_qr"), {
+                    url: url,
+                    name: name,
+                    updatedAt: new Date().toISOString()
+                });
+                showToast('บันทึกและอัปเดต QR Code สำเร็จ!');
+            } catch(e) {
+                alert('เกิดข้อผิดพลาด: ' + e.message);
+            }
+        };
+
+        window.submitTopupSlip = async function() {
+            const user = auth.currentUser;
+            if(!user) {
+                showToast('กรุณาเข้าสู่ระบบก่อนแจ้งเติมเงิน!');
+                switchTab('login-section');
+                return;
+            }
+            const amountInput = document.getElementById('topup-amount');
+            const amount = parseFloat(amountInput.value);
+
+            if(!amount || amount <= 0) return alert('กรุณากรอกจำนวนเงินโอนที่ถูกต้อง');
+
+            try {
+                await addDoc(collection(db, "topup_requests"), {
+                    uid: user.uid,
+                    email: user.email,
+                    amount: amount,
+                    status: 'pending',
+                    timestamp: new Date().toISOString()
+                });
+                showToast('แจ้งชำระเงินสำเร็จ! แอดมินกำลังตรวจสอบเพื่อเพิ่มเครดิตให้ครับ');
+                amountInput.value = '';
+            } catch(err) {
+                alert('เกิดข้อผิดพลาด: ' + err.message);
+            }
+        };
+
+        window.approveTopup = async function(reqId, targetUid, amount) {
+            if(!confirm(`อนุมัติยอด ${amount} บาท ให้ผู้ใช้ใช่หรือไม่?`)) return;
+            try {
+                await updateDoc(doc(db, "topup_requests", reqId), { status: 'approved' });
+                await updateDoc(doc(db, "users", targetUid), { balance: increment(amount) });
+                showToast('อนุมัติยอดเงินและบวกเครดิตให้ผู้ใช้เรียบร้อย!');
+                loadTopupRequests();
+            } catch(e) {
+                alert('เกิดข้อผิดพลาด: ' + e.message);
+            }
+        };
+
+        async function loadTopupRequests() {
+            const container = document.getElementById('topup-requests-container');
+            if(!container) return;
+            try {
+                const querySnapshot = await getDocs(collection(db, "topup_requests"));
+                container.innerHTML = '';
+                querySnapshot.forEach((docSnap) => {
+                    const d = docSnap.data();
+                    if(d.status === 'pending') {
+                        container.innerHTML += `
+                            <div class="bg-gray-800 p-3 rounded-xl text-xs flex justify-between items-center mb-2 border border-gray-700">
+                                <div>
+                                    <p class="text-white font-bold">${d.email}</p>
+                                    <p class="text-red-400 font-bold">ยอดโอน: ฿ ${d.amount}</p>
+                                </div>
+                                <button onclick="approveTopup('${docSnap.id}', '${d.uid}', ${d.amount})" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-semibold transition">อนุมัติยอดเงิน</button>
+                            </div>
+                        `;
+                    }
+                });
+                if(!container.innerHTML) container.innerHTML = '<p class="text-gray-400 text-xs">ไม่มีรายการรออนุมัติ</p>';
+            } catch(e) {
+                console.error("Load topup requests error:", e);
+            }
+        }
+
+        // ⚙️ แอดมินเพิ่มบริการเติมเกมหรือสินค้าใหม่เองจากหลังบ้าน
+        window.addNewProduct = async function() {
+            const name = document.getElementById('new-prod-name').value.trim();
+            const price = parseFloat(document.getElementById('new-prod-price').value);
+            const category = document.getElementById('new-prod-category').value;
+            const desc = document.getElementById('new-prod-desc').value.trim() || 'บริการรวดเร็ว ปลอดภัย 100%';
+
+            if(!name || !price) return alert('กรุณากรอกชื่อสินค้าและราคาให้ครบถ้วน');
+
+            try {
+                await addDoc(collection(db, "products"), {
+                    name: name,
+                    price: price,
+                    category: category,
+                    desc: desc,
+                    stock: 'Available',
+                    createdAt: new Date().toISOString()
+                });
+                showToast('เพิ่มบริการ/สินค้าใหม่สำเร็จ!');
+                document.getElementById('new-prod-name').value = '';
+                document.getElementById('new-prod-price').value = '';
+                document.getElementById('new-prod-desc').value = '';
+                loadProducts();
+                loadMarketProducts();
+            } catch(e) {
+                alert('เกิดข้อผิดพลาด: ' + e.message);
+            }
+        };
+
+        async function loadProducts() {
+            const tbody = document.getElementById('products-table-body');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            try {
+                const querySnapshot = await getDocs(collection(db, "products"));
+                querySnapshot.forEach((docSnap) => {
+                    const p = docSnap.data();
+                    tbody.innerHTML += `
+                        <tr class="border-b border-gray-800">
+                            <td class="p-3 uppercase font-mono text-[10px] text-yellow-400">${p.category || 'robux'}</td>
+                            <td class="p-3 text-xs">${p.name}</td>
+                            <td class="p-3 text-xs text-red-400 font-bold">฿ ${p.price}</td>
+                            <td class="p-3 text-center">
+                                <button onclick="deleteProduct('${docSnap.id}')" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-lg text-xs">ลบ</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch(e) {
+                console.error("Load products error:", e);
+            }
+        }
+
+        window.deleteProduct = async function(id) {
+            if(!confirm('ต้องการลบสินค้านี้ใช่หรือไม่?')) return;
+            await deleteDoc(doc(db, "products", id));
+            showToast('ลบสินค้าเรียบร้อยแล้ว!');
+            loadProducts();
+            loadMarketProducts();
+        };
+    </script>
+
+    <style>
+        body { font-family: 'Prompt', sans-serif; background-color: #0d0e12; color: #f3f4f6; padding-bottom: 90px; }
+        .id2u-card { background: #16181e; border: 1px solid #232630; }
+        .floating-market-btn {
+            position: absolute;
+            top: -22px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            background: #e50914;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 20px rgba(229, 9, 20, 0.6);
+            border: 4px solid #0d0e12;
+        }
+        .marquee-container { overflow: hidden; white-space: nowrap; width: 100%; }
+        .marquee-text { display: inline-block; animation: marquee 25s linear infinite; }
+        @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between relative">
+
+    <div id="custom-toast" class="fixed top-5 right-5 z-50 hidden">
+        <div class="bg-gray-900 border border-red-500 text-white px-5 py-3 rounded-2xl flex items-center space-x-3 shadow-2xl">
+            <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            <span id="toast-message" class="text-xs sm:text-sm font-semibold">ดำเนินการสำเร็จ</span>
+        </div>
+    </div>
+
+    <!-- Announcement Bar -->
+    <div class="bg-red-600 text-white text-[11px] py-2 px-4 flex items-center font-medium overflow-hidden">
+        <svg class="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path></svg>
+        <div class="marquee-container">
+            <span id="marquee-announcement-text" class="marquee-text font-bold">ID2U เป็นเพียง ตัวกลางบริการรับซื้อ-ขายไอดีเกม รับฟรี วันละ 1 PD ใหม่</span>
+        </div>
+    </div>
+
+    <!-- Header Navbar -->
+    <header class="bg-[#12141a] sticky top-0 z-40 border-b border-gray-800 px-4 py-2.5">
+        <div class="max-w-7xl mx-auto flex items-center justify-between gap-2">
+            <div class="flex items-center space-x-2 cursor-pointer" onclick="switchTab('home-section')">
+                <span class="text-2xl font-black tracking-tighter text-white">Cyber<span class="text-red-600">Red</span></span>
+            </div>
+
+            <div class="flex items-center space-x-2">
+                <button id="top-auth-btn" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow flex items-center space-x-1">
+                    <span>เข้าสู่ระบบ</span>
+                </button>
+                <button onclick="openSideMenu()" class="text-white p-2 text-xl focus:outline-none hover:text-red-500 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 👈 Side Drawer Menu (สไลด์ด้านซ้ายแบบสมูท) -->
+    <div id="sideMenuOverlay" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden transition-opacity" onclick="closeSideMenu()"></div>
+    <div id="sideMenu" class="fixed top-0 left-0 w-80 h-full bg-[#12141a] border-r border-gray-800 z-50 transform -translate-x-full transition-transform duration-300 ease-in-out p-6 flex flex-col justify-between shadow-2xl">
+        <div>
+            <div class="flex items-center justify-between pb-4 border-b border-gray-800">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gray-800 border border-gray-700 rounded-full flex items-center justify-center font-bold text-white text-lg">
+                        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                    </div>
+                    <div>
+                        <h4 id="side-user-email" class="text-sm font-bold text-white truncate max-w-[150px]">ผู้ใช้ (Member)</h4>
+                        <span id="side-role-badge" class="text-[10px] bg-gray-800 text-gray-400 px-2 py-0.5 rounded-md font-medium inline-block mt-0.5">GUEST USER</span>
+                    </div>
+                </div>
+                <button onclick="closeSideMenu()" class="text-gray-400 hover:text-white text-2xl font-bold">&times;</button>
+            </div>
+
+            <div class="bg-[#1c1f26] p-4 rounded-2xl my-4 border border-gray-800">
+                <p class="text-xs text-gray-400">ยอดเงินเครดิตของคุณ</p>
+                <h3 id="side-user-balance" class="text-2xl font-bold text-red-500 mt-1">฿ 0.00</h3>
+            </div>
+
+            <div class="space-y-2 text-sm font-medium">
+                <button onclick="switchTab('topup-section')" class="w-full text-left py-2.5 px-3 rounded-xl hover:bg-gray-800 flex items-center space-x-3 text-gray-200 transition">
+                    <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                    <span>เติมเงิน / กระเป๋าเงิน</span>
+                </button>
+                <button onclick="switchTab('orders-section')" class="w-full text-left py-2.5 px-3 rounded-xl hover:bg-gray-800 flex items-center space-x-3 text-gray-200 transition">
+                    <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                    <span>คำสั่งซื้อของฉัน</span>
+                </button>
+                <button onclick="switchTab('wheel-section')" class="w-full text-left py-2.5 px-3 rounded-xl hover:bg-gray-800 flex items-center space-x-3 text-gray-200 transition">
+                    <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span>วงล้อลุ้นเครดิตฟรี</span>
+                </button>
+                <button onclick="switchTab('dispute-section')" class="w-full text-left py-2.5 px-3 rounded-xl hover:bg-gray-800 flex items-center space-x-3 text-gray-200 transition">
+                    <svg class="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    <span>แจ้งปัญหา / เคลมสินค้า</span>
+                </button>
+                <button id="side-admin-btn" onclick="switchTab('admin-section')" class="w-full text-left py-2.5 px-3 rounded-xl hover:bg-gray-800 flex items-center space-x-3 text-yellow-400 transition hidden">
+                    <svg class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path></svg>
+                    <span>แผงควบคุมแอดมิน</span>
+                </button>
+            </div>
+        </div>
+
+        <button onclick="logout()" class="w-full bg-gray-800 hover:bg-red-600 text-white py-3 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+            <span>ออกจากระบบ</span>
+        </button>
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full space-y-8">
+
+        <!-- 🔑 1. Login Section -->
+        <section id="login-section" class="app-section max-w-md mx-auto">
+            <div class="id2u-card p-6 sm:p-8 rounded-3xl shadow-2xl relative text-center">
+                <div class="w-12 h-12 bg-red-600/20 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-red-500/30">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                </div>
+                <h2 id="page-auth-title" class="text-2xl font-black text-white mb-1">เข้าสู่ระบบ</h2>
+                <div id="page-auth-switch-text" class="text-xs text-gray-400 mb-6">
+                    ยังไม่มีบัญชี? <span onclick="setAuthMode('register')" class="text-red-500 font-bold underline cursor-pointer">สมัครสมาชิก</span>
+                </div>
+
+                <div class="space-y-3 mb-6">
+                    <button onclick="loginWithGoogle()" class="w-full bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-3 rounded-full flex items-center justify-center space-x-2 shadow-lg transition">
+                        <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12.24 10.285V13.4h6.887c-.58 3.282-3.344 5.713-6.887 5.713-4.12 0-7.462-3.342-7.462-7.462s3.342-7.462 7.462-7.462c1.94 0 3.7.733 5.04 1.93l2.455-2.456C17.75 2.05 15.17 1 12.24 1 6.13 1 1.18 5.95 1.18 12.06s4.95 11.06 11.06 11.06c6.38 0 10.61-4.49 10.61-10.8 0-.73-.08-1.42-.2-2.035H12.24z"/></svg>
+                        <span>เข้าสู่ระบบด้วย Google</span>
+                    </button>
+                </div>
+
+                <div class="space-y-4 text-left">
+                    <div>
+                        <label class="text-xs text-gray-400 block mb-1">อีเมล</label>
+                        <input type="email" id="page-auth-email" placeholder="อีเมล" class="w-full bg-[#0d0e12] border border-gray-800 rounded-xl p-3.5 text-xs text-white focus:outline-none focus:border-red-600">
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-400 block mb-1">รหัสผ่าน</label>
+                        <input type="password" id="page-auth-pass" placeholder="รหัสผ่าน" class="w-full bg-[#0d0e12] border border-gray-800 rounded-xl p-3.5 text-xs text-white focus:outline-none focus:border-red-600">
+                    </div>
+                    
+                    <button id="page-auth-btn" onclick="processAuth()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl transition text-xs shadow-lg mt-2">
+                        เข้าสู่ระบบทันที
+                    </button>
+                    <div id="page-auth-error" class="text-xs text-center text-red-500 font-semibold min-h-[1rem]"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 💳 2. Topup Section -->
+        <section id="topup-section" class="app-section hidden max-w-xl mx-auto">
+            <div class="id2u-card p-6 rounded-3xl space-y-6">
+                <div class="border-b border-gray-800 pb-3 text-center">
+                    <h3 class="text-xl font-extrabold text-white">💳 ระบบเติมเงินผ่าน QR Code (PromptPay)</h3>
+                    <p class="text-xs text-gray-400 mt-1">สแกนจ่ายผ่านแอปธนาคารหรือ TrueMoney พร้อมแจ้งสลิป</p>
+                </div>
+
+                <div class="bg-black/60 p-6 rounded-2xl border border-gray-800 text-center space-y-3">
+                    <div class="w-52 h-52 mx-auto bg-white p-3 rounded-2xl shadow-inner flex items-center justify-center">
+                        <img id="user-qr-image" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=CyberRedPromptPay" alt="QR Code" class="w-full h-full object-contain">
+                    </div>
+                    <div>
+                        <span class="text-[11px] text-gray-400 block">ชื่อบัญชีรับเงิน:</span>
+                        <h4 id="user-qr-name" class="text-sm font-bold text-red-400">Cyber-Red Store Co., Ltd.</h4>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-xs text-gray-300 block mb-1">จำนวนเงินที่โอน (บาท)</label>
+                        <input type="number" id="topup-amount" placeholder="0.00" class="w-full bg-[#0d0e12] border border-gray-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-red-600">
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-300 block mb-1">อัปโหลดสลิปการโอนเงิน</label>
+                        <input type="file" class="w-full bg-[#0d0e12] border border-gray-800 rounded-xl p-2.5 text-xs text-gray-400">
+                    </div>
+                    <button onclick="submitTopupSlip()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3.5 rounded-xl text-xs transition shadow-lg">
+                        🚀 ยืนยันการแจ้งชำระเงิน
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 🛒 3. Market Section (หมวดหมู่เกม & เติม Robux) -->
+        <section id="market-section" class="app-section hidden space-y-6">
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-3 mb-4">
+                <h3 class="text-lg font-bold text-white">ตลาดเกม & บริการเติม Robux</h3>
+                <div class="flex items-center space-x-2 w-full sm:w-auto">
+                    <input type="text" id="checkout-promo-code" placeholder="ใส่โค้ดส่วนลด (เช่น CYBERRED50)" class="bg-[#16181e] border border-gray-800 text-xs px-3 py-2 rounded-xl text-white w-full sm:w-48">
+                </div>
+            </div>
+
+            <!-- หมวดหมู่เกม (Category Filter Buttons) -->
+            <div class="flex overflow-x-auto space-x-2 pb-2 scrollbar-none">
+                <button onclick="filterCategory('all')" class="cat-btn bg-red-600 text-white text-xs px-4 py-2 rounded-xl font-bold flex-shrink-0 transition">ทั้งหมด</button>
+                <button onclick="filterCategory('robux')" class="cat-btn bg-[#16181e] text-gray-400 text-xs px-4 py-2 rounded-xl font-bold flex-shrink-0 hover:bg-gray-800 transition">💎 เติม Robux</button>
+                <button onclick="filterCategory('bloxfruits')" class="cat-btn bg-[#16181e] text-gray-400 text-xs px-4 py-2 rounded-xl font-bold flex-shrink-0 hover:bg-gray-800 transition">⚔️ Blox Fruits</button>
+                <button onclick="filterCategory('freefire')" class="cat-btn bg-[#16181e] text-gray-400 text-xs px-4 py-2 rounded-xl font-bold flex-shrink-0 hover:bg-gray-800 transition">🔥 Free Fire</button>
+                <button onclick="filterCategory('valorant')" class="cat-btn bg-[#16181e] text-gray-400 text-xs px-4 py-2 rounded-xl font-bold flex-shrink-0 hover:bg-gray-800 transition">🎯 Valorant</button>
+            </div>
+
+            <div id="market-products-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+        </section>
+
+        <!-- 🎁 4. Lucky Wheel Section -->
+        <section id="wheel-section" class="app-section hidden max-w-md mx-auto">
+            <div class="id2u-card p-6 rounded-3xl text-center space-y-6">
+                <h3 class="text-xl font-extrabold text-white">🎡 วงล้อลุ้นเครดิตฟรี</h3>
+                <p class="text-xs text-gray-400">หมุนวงล้อเพื่อลุ้นรับเครดิตฟรีสูงสุดจากทางร้านทุกวัน!</p>
+                <div class="w-40 h-40 mx-auto bg-gradient-to-r from-red-600 to-yellow-500 rounded-full flex items-center justify-center shadow-2xl animate-pulse">
+                    <span class="text-3xl font-black text-white">🎁</span>
+                </div>
+                <div id="wheel-result-text" class="text-sm font-bold text-emerald-400 min-h-[1.5rem]">กดปุ่มด้านล่างเพื่อเสี่ยงโชค</div>
+                <button onclick="spinLuckyWheel()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3.5 rounded-xl text-xs transition shadow-lg">
+                    ✨ หมุนวงล้อเสี่ยงโชค
+                </button>
+            </div>
+        </section>
+
+        <!-- ⚠️ 5. Dispute Section -->
+        <section id="dispute-section" class="app-section hidden max-w-lg mx-auto">
+            <div class="id2u-card p-6 rounded-3xl space-y-4">
+                <h3 class="text-lg font-bold text-white">⚠️ แจ้งปัญหา / เคลมสินค้า</h3>
+                <p class="text-xs text-gray-400">พบปัญหาการเติม Robux เติมเกม หรือปัญหาอื่นๆ แจ้งเรื่องไว้ได้เลย</p>
+                <textarea id="dispute-msg" rows="4" placeholder="ระบุรายละเอียดปัญหา..." class="w-full bg-[#0d0e12] border border-gray-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-red-600"></textarea>
+                <button onclick="submitDispute()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl text-xs transition">ส่งเรื่องเคลมสินค้า</button>
+            </div>
+        </section>
+
+        <!-- 📦 6. Orders Section -->
+        <section id="orders-section" class="app-section hidden max-w-2xl mx-auto space-y-6">
+            <div class="id2u-card p-6 rounded-3xl space-y-4">
+                <h3 class="text-lg font-bold text-white">📦 คำสั่งซื้อของฉัน</h3>
+                <div id="user-orders-container" class="space-y-3"></div>
+            </div>
+        </section>
+
+        <!-- 🏠 7. Home Section -->
+        <section id="home-section" class="app-section space-y-6">
+            <div class="text-center py-12 px-4 id2u-card rounded-3xl space-y-4">
+                <h1 class="text-3xl font-extrabold text-white mb-2">ยินดีต้อนรับสู่ Cyber-Red Store</h1>
+                <p class="text-xs text-gray-400 mb-4">ศูนย์กลางเติม Robux, เติมเกม และซื้อขายไอดีเกมที่เร็วที่สุด</p>
+                
+                <div id="dynamic-center-auth-status" class="hidden"></div>
+
+                <div>
+                    <button onclick="switchTab('market-section')" class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-2xl font-bold text-xs shadow-lg">เข้าสู่ตลาดเกม & บริการเติมเงิน</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ⚙️ 8. Admin Panel Section -->
+        <section id="admin-section" class="app-section hidden space-y-6 id2u-card p-6 rounded-3xl">
+            <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+                <h3 class="text-lg font-bold text-yellow-400">⚙️ แผงควบคุมหลังบ้านแอดมิน (Admin Panel)</h3>
+                <span class="text-xs bg-yellow-500/20 text-yellow-400 px-3 py-1 rounded-full font-mono">ADMIN ACTIVE</span>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- ตั้งค่าประกาศวิ่ง -->
+                <div class="bg-black/40 p-5 rounded-2xl border border-gray-800 space-y-3">
+                    <h4 class="text-xs font-bold text-yellow-400">📢 แก้ไขข้อความประกาศแจ้งเตือน</h4>
+                    <div>
+                        <label class="text-[10px] text-gray-400 block mb-1">ข้อความประกาศวิ่งด้านบน</label>
+                        <input type="text" id="admin-announcement-text" placeholder="ข้อความประกาศ..." class="w-full bg-gray-900 border border-gray-800 p-2.5 rounded-xl text-xs text-white">
+                    </div>
+                    <button onclick="saveAdminAnnouncement()" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white py-2 rounded-xl text-xs font-bold transition">💾 บันทึกข้อความประกาศ</button>
+                </div>
+
+                <!-- 🎛️ ตั้งค่าวงล้อสุ่ม -->
+                <div class="bg-black/40 p-5 rounded-2xl border border-gray-800 space-y-3">
+                    <div class="flex justify-between items-center">
+                        <h4 class="text-xs font-bold text-purple-400">🎡 ตั้งค่าระบบวงล้อเสี่ยงโชค</h4>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="admin-wheel-enabled" class="sr-only peer" checked>
+                            <div class="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
+                            <span class="ml-2 text-[10px] text-gray-300 font-bold">เปิด/ปิดระบบ</span>
+                        </label>
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-gray-400 block mb-1">รางวัลเครดิต (คั่นด้วยจุลภาค)</label>
+                        <input type="text" id="admin-wheel-prizes" placeholder="10, 20, 50, 100, 5, 0" class="w-full bg-gray-900 border border-gray-800 p-2.5 rounded-xl text-xs text-white">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-gray-400 block mb-1">น้ำหนักเปอร์เซ็นต์ออกรางวัล (Weight)</label>
+                        <input type="text" id="admin-wheel-weights" placeholder="30, 20, 10, 5, 25, 10" class="w-full bg-gray-900 border border-gray-800 p-2.5 rounded-xl text-xs text-white">
+                    </div>
+                    <button onclick="saveAdminWheelConfig()" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-xl text-xs font-bold transition">💾 บันทึกตั้งค่าวงล้อ</button>
+                </div>
+
+                <!-- ตั้งค่า QR Code -->
+                <div class="bg-black/40 p-5 rounded-2xl border border-gray-800 space-y-3">
+                    <h4 class="text-xs font-bold text-red-400">💳 ตั้งค่าระบบเติมเงิน & QR Code</h4>
+                    <div>
+                        <label class="text-[10px] text-gray-400 block mb-1">ชื่อบัญชีรับเงิน</label>
+                        <input type="text" id="admin-qr-name" placeholder="ชื่อบัญชี" class="w-full bg-gray-900 border border-gray-800 p-2.5 rounded-xl text-xs text-white">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-gray-400 block mb-1">ลิงก์รูปภาพ QR Code</label>
+                        <input type="text" id="admin-qr-url" placeholder="https://..." class="w-full bg-gray-900 border border-gray-800 p-2.5 rounded-xl text-xs text-white">
+                    </div>
+                    <div class="flex space-x-2 pt-1">
+                        <button onclick="saveAdminQR()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-xl text-xs font-bold transition">💾 บันทึก QR</button>
+                    </div>
+                </div>
+
+                <!-- อนุมัติสลิป -->
+                <div class="bg-black/40 p-5 rounded-2xl border border-gray-800">
+                    <h4 class="text-xs font-bold text-emerald-400 mb-3">📥 รายการสลิปเติมเงิน (รออนุมัติ)</h4>
+                    <div id="topup-requests-container" class="space-y-2 max-h-48 overflow-y-auto"></div>
+                </div>
+            </div>
+
+            <!-- ➕ แอดมินเพิ่มเกมและบริการเติมเงินเองจากหลังบ้าน -->
+            <div class="bg-black/40 p-5 rounded-2xl border border-gray-800">
+                <h4 class="text-xs font-bold text-white mb-3">🎮 เพิ่มบริการเติมเกม / เติม Robux / สินค้าใหม่เอง</h4>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3">
+                    <input type="text" id="new-prod-name" placeholder="ชื่อแพ็กเกจ (เช่น เติม Robux 400 R$)" class="bg-gray-900 border border-gray-800 p-2.5 rounded-xl text-xs text-white">
+                    <input type="number" id="new-prod-price" placeholder="ราคา (บาท)" class="bg-gray-900 border border-gray-800 p-2.5 rounded-xl text-xs text-white">
+                    <select id="new-prod-category" class="bg-gray-900 border border-gray-800 p-2.5 rounded-xl text-xs text-white">
+                        <option value="robux">💎 เติม Robux (ID-Pass)</option>
+                        <option value="bloxfruits">⚔️ Blox Fruits</option>
+                        <option value="freefire">🔥 Free Fire</option>
+                        <option value="valorant">🎯 Valorant</option>
+                    </select>
+                    <input type="text" id="new-prod-desc" placeholder="คำอธิบายสั้นๆ" class="bg-gray-900 border border-gray-800 p-2.5 rounded-xl text-xs text-white">
+                </div>
+                <button onclick="addNewProduct()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl text-xs font-bold mb-4">➕ เพิ่มบริการลงระบบ</button>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-gray-300">
+                        <thead class="bg-gray-800 text-gray-400">
+                            <tr>
+                                <th class="p-2">หมวดหมู่</th>
+                                <th class="p-2">ชื่อสินค้า/บริการ</th>
+                                <th class="p-2">ราคา</th>
+                                <th class="p-2 text-center">จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="products-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Bottom Navigation Bar -->
+    <div class="fixed bottom-0 left-0 right-0 bg-[#12141a] border-t border-gray-800 py-2.5 px-6 z-40">
+        <div class="max-w-md mx-auto relative flex justify-between items-center text-center text-[10px]">
+            <button onclick="switchTab('home-section')" class="flex flex-col items-center text-gray-400 hover:text-white transition">
+                <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                <span>หน้าแรก</span>
+            </button>
+            <button onclick="switchTab('orders-section')" class="flex flex-col items-center text-gray-400 hover:text-white transition">
+                <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                <span>คำสั่งซื้อ</span>
+            </button>
+            <button onclick="switchTab('market-section')" class="floating-market-btn text-white">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+            </button>
+            <div class="w-10"></div>
+            <button onclick="switchTab('topup-section')" class="flex flex-col items-center text-gray-400 hover:text-white transition">
+                <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                <span>เติมเงิน</span>
+            </button>
+            <button onclick="handleUserNavClick()" class="flex flex-col items-center text-gray-400 hover:text-white transition">
+                <div id="bottom-nav-auth-icon">
+                    <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
+                </div>
+                <span id="bottom-nav-auth-label">เข้าสู่ระบบ</span>
+            </button>
+        </div>
+    </div>
+
+</body>
+</html>
